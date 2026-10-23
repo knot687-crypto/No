@@ -7,8 +7,10 @@
 		"BufferBuilderAccessor",
 		"GameRendererFovMixin",
 		"GameRendererMixin",
+		"GuiMixin",
 		"KeyboardHandlerMixin",
 		"MinecraftMixin",
+		"MouseHandlerMixin",
 		"PanoramaRendererMixin"
 	],
 	"injectors": {

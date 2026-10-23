@@ -41,6 +41,7 @@ public final class MoonSky {
 	private static final UniformSlots CONFIG = new UniformSlots("XEYS moon config", UBO_SIZE, 1);
 
 	private static MipTexture.@Nullable Uploaded albedo;
+	private static MipTexture.@Nullable CpuImage albedoCpu;
 	private static MipTexture.@Nullable Uploaded normal;
 	private static @Nullable GpuSampler sampler;
 	private static @Nullable GpuTexture placeholder;
@@ -58,6 +59,11 @@ public final class MoonSky {
 
 	public static boolean texturesReady() {
 		return albedo != null && normal != null;
+	}
+
+	/** A 512-wide copy of the moon surface for CPU rendering (HUD moon icons), or null before loading. */
+	public static MipTexture.@Nullable CpuImage albedoCpu() {
+		return albedoCpu;
 	}
 
 	// ------------------------------------------------------------------ loading
@@ -88,6 +94,7 @@ public final class MoonSky {
 		albedo = null;
 		normal = null;
 		if (decoded[0] != null && decoded[1] != null) {
+			albedoCpu = decoded[0].copyLevel(512);
 			albedo = decoded[0].upload();
 			normal = decoded[1].upload();
 		} else {

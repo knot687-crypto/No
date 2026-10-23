@@ -95,6 +95,19 @@ public final class MipTexture implements AutoCloseable {
 		return dst;
 	}
 
+	/** Copies the largest mip level no wider than {@code maxWidth} to the heap, for CPU-side sampling. */
+	public CpuImage copyLevel(int maxWidth) {
+		int i = 0;
+		while (i < this.levels.length - 1 && Math.max(1, this.width >> i) > maxWidth) {
+			i++;
+		}
+		int w = Math.max(1, this.width >> i);
+		int h = Math.max(1, this.height >> i);
+		byte[] rgba = new byte[w * h * 4];
+		this.levels[i].get(0, rgba);
+		return new CpuImage(w, h, rgba);
+	}
+
 	public int width() {
 		return this.width;
 	}
@@ -125,6 +138,31 @@ public final class MipTexture implements AutoCloseable {
 				MemoryUtil.memFree(this.levels[i]);
 				this.levels[i] = null;
 			}
+		}
+	}
+
+	/** A small RGBA image on the heap. */
+	public record CpuImage(int width, int height, byte[] rgba) {
+		/** Bilinear sample of one channel at normalized coordinates; x wraps, y clamps. Returns 0..1. */
+		public float sample(float u, float v, int channel) {
+			float fx = u * this.width - 0.5f;
+			float fy = Math.max(0f, Math.min(v * this.height - 0.5f, this.height - 1f));
+			int x0 = (int) Math.floor(fx);
+			int y0 = (int) fy;
+			float tx = fx - x0;
+			float ty = fy - y0;
+			int y1 = Math.min(y0 + 1, this.height - 1);
+			int xa = Math.floorMod(x0, this.width);
+			int xb = Math.floorMod(x0 + 1, this.width);
+			float a = this.at(xa, y0, channel);
+			float b = this.at(xb, y0, channel);
+			float c = this.at(xa, y1, channel);
+			float d = this.at(xb, y1, channel);
+			return ((a + (b - a) * tx) + ((c + (d - c) * tx) - (a + (b - a) * tx)) * ty) / 255f;
+		}
+
+		private float at(int x, int y, int channel) {
+			return this.rgba[(y * this.width + x) * 4 + channel] & 0xFF;
 		}
 	}
 
