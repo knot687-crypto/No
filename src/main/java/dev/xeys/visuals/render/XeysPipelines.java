@@ -108,6 +108,33 @@ public final class XeysPipelines {
 		.withoutBlend()
 		.build());
 
+	/** The main-menu sky: stars, meteors and the ray-traced moon in one full-screen pass. */
+	public static final RenderPipeline MOON_SKY = register(RenderPipeline.builder(FULLSCREEN)
+		.withLocation(Xeys.id("pipeline/moon_sky"))
+		.withFragmentShader(Xeys.id("core/moon_sky"))
+		.withSampler("MoonAlbedo")
+		.withSampler("MoonNormal")
+		.withSampler("SkyCache")
+		.withUniform("MoonConfig", UniformType.UNIFORM_BUFFER)
+		.withoutBlend()
+		.build());
+
+	/** Opaque full-screen copy of a texture. */
+	public static final RenderPipeline BLIT = register(RenderPipeline.builder(FULLSCREEN)
+		.withLocation(Xeys.id("pipeline/blit"))
+		.withFragmentShader(Xeys.id("post/blit"))
+		.withSampler("InSampler")
+		.withoutBlend()
+		.build());
+
+	/** Static sky gradient and nebula, rendered once per resize into a half-resolution cache. */
+	public static final RenderPipeline MOON_NEBULA = register(RenderPipeline.builder(FULLSCREEN)
+		.withLocation(Xeys.id("pipeline/moon_nebula"))
+		.withFragmentShader(Xeys.id("core/moon_nebula"))
+		.withUniform("MoonConfig", UniformType.UNIFORM_BUFFER)
+		.withoutBlend()
+		.build());
+
 	private XeysPipelines() {
 	}
 

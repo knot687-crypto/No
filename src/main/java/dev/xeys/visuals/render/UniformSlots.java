@@ -5,6 +5,7 @@ import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.buffers.Std140Builder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import org.lwjgl.system.MemoryStack;
 
 /**
@@ -40,8 +41,9 @@ public final class UniformSlots implements AutoCloseable {
 		try (MemoryStack stack = MemoryStack.stackPush()) {
 			ByteBuffer data = stack.calloc(this.stride * count);
 			for (int i = 0; i < count; i++) {
-				data.position(i * this.stride);
-				writer.write(i, Std140Builder.intoBuffer(data.slice(i * this.stride, this.blockSize)));
+				// slice() resets the byte order to big-endian; std140 data must be native order.
+				ByteBuffer slot = data.slice(i * this.stride, this.blockSize).order(ByteOrder.nativeOrder());
+				writer.write(i, Std140Builder.intoBuffer(slot));
 			}
 			data.position(0);
 			RenderSystem.getDevice().createCommandEncoder().writeToBuffer(this.buffer.slice(0, (long) this.stride * count), data);

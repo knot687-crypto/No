@@ -26,8 +26,8 @@ void main() {
     float atlasPerPx = max(length(dFdx(texel)), length(dFdy(texel)));
     atlasPerPx = max(atlasPerPx, 1e-4);
 
-    float sample = texture(Sampler0, vUv).r;
-    float dist = (sample - ON_EDGE) / DIST_SCALE / atlasPerPx; // signed distance in screen pixels
+    float texel0 = texture(Sampler0, vUv).r;
+    float dist = (texel0 - ON_EDGE) / DIST_SCALE / atlasPerPx; // signed distance in screen pixels
 
     // Small text reads lighter than it is with linear blending; nudge it up slightly.
     float emScreen = vA.w / atlasPerPx;
@@ -36,9 +36,13 @@ void main() {
 
     vec4 outP;
     if (vA.z > 0.0) {
-        // Soft mode (shadow / glow): gaussian-ish falloff of the field.
-        float s = vA.z;
+        // Soft mode (shadow / glow): gaussian-ish falloff of the field. The field only encodes ~8 atlas
+        // pixels outside the outline, so the falloff is fitted inside that range and forced to zero at its
+        // edge; otherwise the clamped field would leave a faint box around every glyph at small sizes.
+        float spread = (127.0 / 255.0) / DIST_SCALE / atlasPerPx;
+        float s = min(vA.z, spread * 0.45);
         float a = 0.5 - 0.5 * xeys_erf(-(dist + weight) / (s * 0.70710678));
+        a *= smoothstep(-spread, -spread * 0.55, dist);
         outP = vec4(vColor.rgb * vColor.a, vColor.a) * a;
     } else {
         float fillA = clamp(dist + weight + 0.5, 0.0, 1.0);

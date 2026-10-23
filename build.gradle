@@ -43,3 +43,10 @@ java {
 	sourceCompatibility = JavaVersion.VERSION_21
 	targetCompatibility = JavaVersion.VERSION_21
 }
+
+// Extra JVM args for local test runs, e.g. -PxeysJvmArgs="-Dxeys.disableMenu=true"
+tasks.matching { it.name == "runClientGameTest" }.configureEach {
+	if (project.hasProperty("xeysJvmArgs")) {
+		jvmArgs(project.property("xeysJvmArgs").toString().split(" "))
+	}
+}

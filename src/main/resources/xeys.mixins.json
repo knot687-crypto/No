@@ -5,7 +5,10 @@
 	"compatibilityLevel": "JAVA_21",
 	"client": [
 		"BufferBuilderAccessor",
-		"GameRendererMixin"
+		"GameRendererFovMixin",
+		"GameRendererMixin",
+		"MinecraftMixin",
+		"PanoramaRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
