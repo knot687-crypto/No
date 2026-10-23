@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "dev.xeys.visuals.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"BufferBuilderAccessor",
+		"GameRendererMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

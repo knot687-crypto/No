@@ -1,0 +1,26 @@
+{
+	"schemaVersion": 1,
+	"id": "xeys",
+	"version": "${version}",
+	"name": "XEYS VISUALS",
+	"description": "A premium visuals and cosmetics client. Client-side visuals only: no combat, movement or gameplay advantages.",
+	"authors": ["XEYS"],
+	"license": "All-Rights-Reserved",
+	"icon": "assets/xeys/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["dev.xeys.visuals.XeysClient"]
+	},
+	"mixins": [
+		{
+			"config": "xeys.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.17.0",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}

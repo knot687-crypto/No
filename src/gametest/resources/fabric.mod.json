@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "xeys-gametest",
+	"version": "1.0.0",
+	"name": "XEYS VISUALS Game Tests",
+	"environment": "client",
+	"entrypoints": {
+		"fabric-client-gametest": ["dev.xeys.visuals.test.XeysClientGameTest"]
+	},
+	"depends": {
+		"xeys": "*"
+	}
+}
