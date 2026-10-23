@@ -21,8 +21,9 @@ public final class MoonScene {
 	private final Anim intro = new Anim(0f);
 	private final Anim moonIn = new Anim(0f);
 	private final Anim exit = new Anim(0f);
-	/** Shared so the moon's rotation is continuous across every screen that shows it. */
-	private static final double ROTATION_OFFSET = -Clock.time() * (Math.PI * 2.0 / ROTATION_PERIOD);
+	/** Integrated (not time-derived) so speed changes never make the moon jump; shared across screens. */
+	private static double rotationAngle;
+	private static long rotationFrame = -1L;
 
 	private final float[] mx = new float[METEORS];
 	private final float[] my = new float[METEORS];
@@ -76,8 +77,14 @@ public final class MoonScene {
 		this.width = fbWidth;
 		this.height = fbHeight;
 		float res = fbHeight / 1080f;
-		this.parallaxX.target(-cursorX * 26f * res);
-		this.parallaxY.target(-cursorY * 18f * res);
+		float parallax = settings() == null ? 1f : settings().parallax.value() / 100f;
+		this.parallaxX.target(-cursorX * 26f * res * parallax);
+		this.parallaxY.target(-cursorY * 18f * res * parallax);
+		if (rotationFrame != Clock.frame()) {
+			rotationFrame = Clock.frame();
+			float speed = settings() == null ? 1f : settings().rotation.value() / 100f;
+			rotationAngle = (rotationAngle + Clock.delta() * speed * (Math.PI * 2.0 / ROTATION_PERIOD)) % (Math.PI * 2.0);
+		}
 		this.updateMeteors(res);
 	}
 
@@ -93,7 +100,8 @@ public final class MoonScene {
 				}
 			}
 		}
-		if (this.meteorsEnabled && Clock.time() >= this.nextMeteor && this.exit.get() <= 0f) {
+		boolean allowed = settings() == null || settings().shootingStars.on();
+		if (this.meteorsEnabled && allowed && Clock.time() >= this.nextMeteor && this.exit.get() <= 0f) {
 			this.spawnMeteor(res);
 			this.nextMeteor = Clock.time() + 4.0 + this.random.nextDouble() * 7.0;
 		}
@@ -149,9 +157,13 @@ public final class MoonScene {
 		return this.height * 0.26f * this.zoom();
 	}
 
+	/** Starts with the familiar near side facing us. */
 	public float rotation() {
-		// Starts with the familiar near side facing us.
-		return (float) ((Clock.time() * (Math.PI * 2.0 / ROTATION_PERIOD) + ROTATION_OFFSET) % (Math.PI * 2.0));
+		return (float) rotationAngle;
+	}
+
+	private static dev.xeys.visuals.modules.client.MainMenuModule settings() {
+		return dev.xeys.visuals.modules.client.MainMenuModule.get();
 	}
 
 	public float tilt() {
@@ -180,7 +192,7 @@ public final class MoonScene {
 	}
 
 	public float starBrightness() {
-		return 1.0f;
+		return settings() == null ? 1f : settings().starBrightness.value() / 100f;
 	}
 
 	public float glow() {
@@ -188,7 +200,7 @@ public final class MoonScene {
 	}
 
 	public float relief() {
-		return 1.7f;
+		return settings() == null ? 1.7f : settings().relief.value();
 	}
 
 	public float exposure() {

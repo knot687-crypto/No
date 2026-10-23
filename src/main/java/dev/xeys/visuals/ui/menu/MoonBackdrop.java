@@ -20,7 +20,8 @@ public final class MoonBackdrop {
 
 	/** Draws the backdrop; returns false when the panorama should be drawn instead. */
 	public static boolean render() {
-		if (!MenuHooks.enabled() || Boolean.getBoolean("xeys.noBackdrop")) {
+		var settings = dev.xeys.visuals.modules.client.MainMenuModule.get();
+		if (!MenuHooks.enabled() || (settings != null && !settings.backdrop.on()) || Boolean.getBoolean("xeys.noBackdrop")) {
 			return false;
 		}
 		Minecraft mc = Minecraft.getInstance();

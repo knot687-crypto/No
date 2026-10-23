@@ -33,7 +33,8 @@ public final class WorldEntryTransition {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level != null && mc.player != null && mc.screen == null && mc.getOverlay() == null) {
 			pending = false;
-			if (MenuHooks.enabled()) {
+			var settings = dev.xeys.visuals.modules.client.MainMenuModule.get();
+			if (MenuHooks.enabled() && (settings == null || settings.arrival.on())) {
 				ScreenFade.fadeFrom(0xFF020203, 1.6f, Easing.OUT_CUBIC);
 				ZOOM.restart(0.8f, 1f, 2.0f, Easing.OUT_CUBIC);
 			}

@@ -18,6 +18,7 @@ public final class RenderFrame {
 		ClipStack.reset();
 		sceneBlurRequested = false;
 		WorldEntryTransition.frame();
+		dev.xeys.visuals.core.event.Events.frameStart();
 		if (DEBUG_FRAMES && Clock.frame() % 30 == 0) {
 			net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();
 			dev.xeys.visuals.Xeys.LOG.info("frame {} screen {} fps {}", Clock.frame(),
@@ -38,6 +39,7 @@ public final class RenderFrame {
 
 	/** Runs after the world (and any immediate background) is drawn, right before the GUI flush. */
 	public static void beforeGuiFlush(GuiRenderState state) {
+		dev.xeys.visuals.ui.notify.Notifications.render(state);
 		ScreenFade.render(state);
 		if (sceneBlurRequested) {
 			SceneBlur.process();

@@ -1,9 +1,8 @@
 package dev.xeys.visuals.test;
 
-import dev.xeys.visuals.ui.dev.RenderTestScreen;
+import dev.xeys.visuals.ui.clickgui.ClickGuiScreen;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.client.gui.screens.TitleScreen;
 
 public final class XeysClientGameTest implements FabricClientGameTest {
@@ -11,55 +10,38 @@ public final class XeysClientGameTest implements FabricClientGameTest {
 	public void runTest(ClientGameTestContext context) {
 		context.getInput().resizeWindow(1600, 900);
 		context.waitTicks(5);
-		// Main menu: cinematic intro, settled state, hover.
+		context.setScreen(() -> new ClickGuiScreen(null));
+		context.waitTicks(4);
+		context.takeScreenshot("gui_open_anim");
+		context.waitTicks(20);
+		// Window: 1040x680 design units centered in 1920x1080 -> origin (440, 200).
+		clickDesign(context, 550, 200 + 92 + 5 * 40 + 18);
+		context.waitTicks(15);
+		context.takeScreenshot("gui_client");
+		// Open the Theme card (first card, left column).
+		clickDesign(context, 800, 200 + 88 + 37);
+		context.waitTicks(15);
+		context.takeScreenshot("gui_theme_settings");
+		// Accent color swatch (first row, right side) opens the picker.
+		clickDesign(context, 440 + 1040 - 26 - 30, 200 + 8 + 92 + 34 + 23);
+		context.waitTicks(10);
+		context.takeScreenshot("gui_color_picker");
+		context.getInput().pressKey(org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE);
+		context.waitTicks(6);
+		// Profiles popover.
+		clickDesign(context, 520, 200 + 680 - 108 + 46 + 20);
+		context.waitTicks(10);
+		context.takeScreenshot("gui_profiles");
 		context.setScreen(TitleScreen::new);
-		context.waitTicks(8);
-		context.takeScreenshot("menu_intro");
-		context.waitTicks(50);
-		context.takeScreenshot("menu_settled");
-		context.getInput().setCursorPos(800, 806);
-		context.waitTicks(12);
-		context.takeScreenshot("menu_hover");
+		context.waitTicks(2);
+	}
 
-		// Click Singleplayer: exit transition, then the world list fading in.
-		context.getInput().setCursorPos(570, 806);
+	/** Clicks at design coordinates (1080 units tall) by converting to window pixels. */
+	private static void clickDesign(ClientGameTestContext context, double dx, double dy) {
+		double f = 900.0 / 1080.0;
+		context.getInput().setCursorPos(dx * f, dy * f);
 		context.waitTicks(2);
 		context.getInput().pressMouse(0);
-		context.waitTicks(6);
-		context.takeScreenshot("menu_exit_mid");
-		context.waitTicks(14);
-		context.takeScreenshot("menu_after_exit");
-		context.setScreen(TitleScreen::new);
-		context.waitTicks(20);
-		context.takeScreenshot("menu_return");
-
-		// Resolution independence.
-		context.getInput().resizeWindow(854, 480);
-		context.waitTicks(10);
-		context.takeScreenshot("menu_854x480");
-		context.getInput().resizeWindow(2560, 1440);
-		context.waitTicks(10);
-		context.takeScreenshot("menu_2560x1440");
-		context.getInput().resizeWindow(1600, 900);
-		context.waitTicks(5);
-
-		context.setScreen(RenderTestScreen::new);
-		context.waitTicks(10);
-		context.takeScreenshot("render_test");
-
-		// World entry: fade from black with an easing field of view. (Software GL in CI competes with
-		// world generation for CPU, so worlds are created at a moderate window size.)
-		context.getInput().resizeWindow(1280, 720);
-		context.waitTicks(2);
-		try (TestSingleplayerContext world = context.worldBuilder().create()) {
-			context.takeScreenshot("world_entry_early");
-			context.waitTicks(3);
-			context.takeScreenshot("world_entry_mid");
-			world.getClientWorld().waitForChunksRender();
-			context.waitTicks(40);
-			context.takeScreenshot("world_entry_done");
-		}
-		context.setScreen(TitleScreen::new);
 		context.waitTicks(2);
 	}
 }
