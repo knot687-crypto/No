@@ -55,6 +55,31 @@ public final class HudPosition {
 		return this.anchor;
 	}
 
+	public Anchor defaultAnchor() {
+		return this.defaultAnchor;
+	}
+
+	public float defaultX() {
+		return this.defaultX;
+	}
+
+	public float defaultY() {
+		return this.defaultY;
+	}
+
+	/** True while the element is exactly where it shipped: never moved or scaled. */
+	public boolean isDefault() {
+		return this.anchor == this.defaultAnchor && this.x == this.defaultX && this.y == this.defaultY && this.scale == 1f;
+	}
+
+	/** Moves to an anchor and offset (automatic placement; keeps the scale). */
+	public void place(Anchor anchor, float x, float y) {
+		this.anchor = anchor;
+		this.x = x;
+		this.y = y;
+		SettingChanges.markDirty();
+	}
+
 	public float scale() {
 		return this.scale;
 	}

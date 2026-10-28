@@ -8,6 +8,9 @@ import net.minecraft.client.gui.screens.TitleScreen;
 public final class XeysClientGameTest implements FabricClientGameTest {
 	@Override
 	public void runTest(ClientGameTestContext context) {
+		if (!TestFilter.enabled("gui")) {
+			return;
+		}
 		context.getInput().resizeWindow(1600, 900);
 		context.waitTicks(5);
 		context.setScreen(() -> new ClickGuiScreen(null));

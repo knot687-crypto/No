@@ -29,6 +29,7 @@ public final class HudRenderer {
 				renderModule(g, m, sw, sh, partial, false);
 			}
 		}
+		HudPlacement.resolve(sw, sh, false);
 	}
 
 	/** Lays out and draws one module at its configured position. */

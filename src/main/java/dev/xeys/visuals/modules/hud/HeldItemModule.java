@@ -70,27 +70,32 @@ public final class HeldItemModule extends HudModule {
 		return s;
 	}
 
-	@Override
-	public boolean hasContent(boolean preview) {
+	/** Tracks item switches (for the On Switch mode); cheap enough to run every frame. */
+	private boolean wanted(boolean preview) {
 		ItemStack s = this.current(preview);
 		if (s != this.lastSeen && !ItemStack.isSameItemSameComponents(s, this.lastSeen)) {
 			this.switchedAt = Clock.time();
 		}
 		this.lastSeen = s;
-		boolean visible = !s.isEmpty() && (preview || this.mode.is(Mode.ALWAYS) || Clock.time() - this.switchedAt < this.linger.value());
+		if (!s.isEmpty()) {
+			this.stack = s;
+		}
+		return !s.isEmpty() && (preview || this.mode.is(Mode.ALWAYS) || Clock.time() - this.switchedAt < this.linger.value());
+	}
+
+	@Override
+	public boolean hasContent(boolean preview) {
+		return this.wanted(preview) || this.appear.get() > 0f;
+	}
+
+	@Override
+	protected void layout(boolean preview) {
+		boolean visible = this.wanted(preview);
 		if (visible && this.appear.target() < 1f) {
 			this.appear.to(1f, 0.25f, Easing.OUT_CUBIC);
 		} else if (!visible && this.appear.target() > 0f) {
 			this.appear.to(0f, 0.35f, Easing.IN_OUT_CUBIC);
 		}
-		if (!s.isEmpty()) {
-			this.stack = s;
-		}
-		return this.appear.get() > 0f && !this.stack.isEmpty();
-	}
-
-	@Override
-	protected void layout(boolean preview) {
 		ItemStack s = this.stack;
 		if (s != this.named) {
 			this.named = s;

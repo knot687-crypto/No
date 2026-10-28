@@ -53,6 +53,10 @@ public final class HudEditorScreen extends Screen {
 	private final Anim tray = new Anim(0f);
 	private int toolbarHover = -1;
 	private int trayHover = -1;
+	private final Spring toolbarSlot = new Spring(0f, 260f, 1f);
+	private boolean toolbarBottom;
+	private boolean toolbarPlaced;
+	private final Anim hint = new Anim(0f);
 
 	public HudEditorScreen(@Nullable Screen parent) {
 		super(Component.literal("HUD Editor"));
@@ -62,6 +66,53 @@ public final class HudEditorScreen extends Screen {
 	@Override
 	protected void init() {
 		this.open.restart(0f, 1f, 0.3f, Easing.OUT_CUBIC);
+		this.hint.restart(0f, 1f, 0.5f, Easing.OUT_CUBIC);
+		this.hintShownAt = dev.xeys.visuals.anim.Clock.time();
+	}
+
+	private double hintShownAt;
+
+	/** Area (GUI px) of enabled elements under a horizontal band, used to pick the toolbar's edge. */
+	private float bandOverlap(float y0, float y1, float x0, float x1) {
+		float sum = 0f;
+		for (HudModule m : ModuleManager.hudModules()) {
+			if (!m.isEnabled() || !m.laidOut()) {
+				continue;
+			}
+			float w = m.scaledWidth();
+			float h = m.scaledHeight();
+			float l = m.position.left(this.width, w);
+			float t = m.position.top(this.height, h);
+			float ox = Math.min(x1, l + w) - Math.max(x0, l);
+			float oy = Math.min(y1, t + h) - Math.max(y0, t);
+			if (ox > 0f && oy > 0f) {
+				sum += ox * oy;
+			}
+		}
+		return sum;
+	}
+
+	private void chooseToolbarEdge() {
+		if (this.dragging != null || this.resizing != null) {
+			return;
+		}
+		float k = UiScale.guiPerDesign();
+		float tw = this.toolbarWidth() * k;
+		float x0 = (this.width - tw) * 0.5f;
+		float bandH = 76f * k;
+		float top = this.bandOverlap(0f, bandH, x0, x0 + tw);
+		float bottom = this.bandOverlap(this.height - bandH, this.height, x0, x0 + tw);
+		// Hysteresis so it does not flip back and forth on small differences.
+		if (!this.toolbarBottom && bottom < top * 0.6f) {
+			this.toolbarBottom = true;
+		} else if (this.toolbarBottom && top < bottom * 0.6f) {
+			this.toolbarBottom = false;
+		}
+		if (!this.toolbarPlaced) {
+			this.toolbarPlaced = true;
+			this.toolbarSlot.snap(this.toolbarBottom ? 1f : 0f);
+		}
+		this.toolbarSlot.target(this.toolbarBottom ? 1f : 0f);
 	}
 
 	@Override
@@ -71,9 +122,11 @@ public final class HudEditorScreen extends Screen {
 		}
 	}
 
-	private static boolean preview() {
-		return net.minecraft.client.Minecraft.getInstance().level == null;
-	}
+	/**
+	 * The editor always lays elements out in preview mode: each element shows live data when there is
+	 * any and sample data otherwise, so every element is visible and keeps a stable size while editing.
+	 */
+	private static final boolean PREVIEW = true;
 
 	@Override
 	public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
@@ -115,9 +168,10 @@ public final class HudEditorScreen extends Screen {
 			if (!m.isEnabled()) {
 				continue;
 			}
-			HudRenderer.renderModule(g, m, sw, sh, partial, preview() || !m.hasContent(false));
+			HudRenderer.renderModule(g, m, sw, sh, partial, PREVIEW);
 			this.drawFrame(g, m, sw, sh, a);
 		}
+		HudPlacement.resolve(sw, sh, PREVIEW);
 
 		// Snap guides.
 		if (!Float.isNaN(this.guideX)) {
@@ -134,7 +188,7 @@ public final class HudEditorScreen extends Screen {
 	}
 
 	private boolean contains(HudModule m, float mx, float my, float sw, float sh) {
-		m.layoutFrame(preview() || !m.hasContent(false));
+		m.layoutFrame(PREVIEW);
 		float w = m.scaledWidth();
 		float h = m.scaledHeight();
 		float x = m.position.left(sw, w);
@@ -209,8 +263,12 @@ public final class HudEditorScreen extends Screen {
 		float W = UiScale.width();
 		float H = UiScale.height();
 		float tw = this.toolbarWidth();
+		this.chooseToolbarEdge();
+		float slot = this.toolbarSlot.get();
+		float topY = 18f - (1f - a) * 12f;
+		float bottomY = H - 18f - 44f + (1f - a) * 12f;
 		this.toolbarX = (W - tw) * 0.5f;
-		this.toolbarY = 18f - (1f - a) * 12f;
+		this.toolbarY = topY + (bottomY - topY) * slot;
 		Draw.shadow(g, this.toolbarX, this.toolbarY, tw, 44f, 14f, 0f, 8f, 26f, -2f, Colors.withAlpha(0x000000, 0.5f * a));
 		Draw.glass(g, this.toolbarX, this.toolbarY, tw, 44f, 0xD8070708).radius(14f).border(1f, Theme.GLASS_BORDER).borderFade(0.3f).alpha(a).submit();
 		float x = this.toolbarX + 6f;
@@ -242,7 +300,8 @@ public final class HudEditorScreen extends Screen {
 		this.trayW = 300f;
 		this.trayH = Math.min(H - 120f, 20f + mods.size() * 40f);
 		this.trayX = this.toolX[2] + this.toolW[2] * 0.5f - this.trayW * 0.5f;
-		this.trayY = this.toolbarY + 54f - (1f - this.tray.get()) * 8f;
+		this.trayY = slot < 0.5f ? this.toolbarY + 54f - (1f - this.tray.get()) * 8f
+			: this.toolbarY - 10f - this.trayH + (1f - this.tray.get()) * 8f;
 		this.trayHover = -1;
 		if (ta > 0.01f) {
 			Draw.shadow(g, this.trayX, this.trayY, this.trayW, this.trayH, 14f, 0f, 10f, 30f, -2f, Colors.withAlpha(0x000000, 0.55f * ta));
@@ -264,9 +323,18 @@ public final class HudEditorScreen extends Screen {
 			Draw.popClip();
 		}
 
-		// Hint line.
-		String hint = "Drag to move  ·  Scroll or drag the corner to resize  ·  Right-click for settings  ·  Hold Alt to place freely";
-		Text.drawMiddle(g, Fonts.MEDIUM, hint, W * 0.5f, H - 26f, 11.5f, Colors.mulAlpha(Theme.TEXT_MUTED, a), Text.Align.CENTER);
+		// Hint under (or over) the toolbar; fades once you have had time to read it.
+		if (dev.xeys.visuals.anim.Clock.time() - this.hintShownAt > 6.0 && this.hint.target() > 0f) {
+			this.hint.to(0f, 0.8f, Easing.IN_OUT_CUBIC);
+		}
+		float ha = this.hint.get() * a * (1f - ta);
+		if (ha > 0.01f) {
+			String hint = "Drag to move  ·  Scroll or drag the corner to resize  ·  Right-click for settings  ·  Hold Alt to place freely";
+			float hy = slot < 0.5f ? this.toolbarY + 44f + 20f : this.toolbarY - 20f;
+			float hw = Fonts.MEDIUM.width(hint, 11.5f) + 28f;
+			Draw.rect(g, (W - hw) * 0.5f, hy - 13f, hw, 26f).radius(13f).color(Colors.withAlpha(0xFF0A0A0C, 0.72f * ha)).submit();
+			Text.drawMiddle(g, Fonts.MEDIUM, hint, W * 0.5f, hy, 11.5f, Colors.mulAlpha(Theme.TEXT_SECONDARY, ha), Text.Align.CENTER);
+		}
 		UiScale.pop(g);
 	}
 

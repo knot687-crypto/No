@@ -35,6 +35,7 @@ public final class PackDisplayModule extends HudModule {
 	private final List<Entry> entries = new ArrayList<>();
 	private String signature = "";
 	private long checkedAt;
+	private boolean lastPreview;
 
 	public PackDisplayModule() {
 		super("pack_display", "Pack Display", Icons.LAYERS, "Your active resource packs with their icons", HudPosition.Anchor.BOTTOM_RIGHT, -6f,
@@ -52,8 +53,15 @@ public final class PackDisplayModule extends HudModule {
 
 	@Override
 	public boolean hasContent(boolean preview) {
-		this.refresh(preview);
-		return !this.entries.isEmpty();
+		if (preview) {
+			return true;
+		}
+		for (Pack p : Minecraft.getInstance().getResourcePackRepository().getSelectedPacks()) {
+			if (!p.isRequired()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -74,10 +82,11 @@ public final class PackDisplayModule extends HudModule {
 	/** Rebuilds the list when the selection changes; checked twice a second. */
 	private void refresh(boolean preview) {
 		long now = System.nanoTime();
-		if (now - this.checkedAt < 500_000_000L && !this.signature.isEmpty()) {
+		if (now - this.checkedAt < 500_000_000L && !this.signature.isEmpty() && preview == this.lastPreview) {
 			return;
 		}
 		this.checkedAt = now;
+		this.lastPreview = preview;
 		List<Pack> picked = new ArrayList<>();
 		List<Pack> selected = new ArrayList<>(Minecraft.getInstance().getResourcePackRepository().getSelectedPacks());
 		for (int i = selected.size() - 1; i >= 0 && picked.size() < this.maxPacks.intValue(); i--) {

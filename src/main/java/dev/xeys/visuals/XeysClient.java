@@ -5,6 +5,7 @@ import dev.xeys.visuals.core.config.ConfigManager;
 import dev.xeys.visuals.core.event.Events;
 import dev.xeys.visuals.core.event.WorldEvents;
 import dev.xeys.visuals.core.module.ModuleManager;
+import dev.xeys.visuals.hud.HudPlacement;
 import dev.xeys.visuals.hud.HudRenderer;
 import dev.xeys.visuals.modules.Modules;
 import dev.xeys.visuals.render.XeysPipelines;
@@ -37,6 +38,7 @@ public final class XeysClient implements ClientModInitializer {
 
 		Modules.init();
 		ConfigManager.init();
+		HudPlacement.install();
 
 		Keybinds.register();
 		WorldEntryTransition.register();

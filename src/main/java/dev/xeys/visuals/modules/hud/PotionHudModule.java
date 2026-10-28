@@ -92,8 +92,18 @@ public final class PotionHudModule extends HudModule {
 
 	@Override
 	public boolean hasContent(boolean preview) {
-		this.sync(preview);
-		return !this.rows.isEmpty();
+		if (preview || !this.rows.isEmpty()) {
+			return true;
+		}
+		Player p = Minecraft.getInstance().player;
+		if (p != null) {
+			for (MobEffectInstance inst : p.getActiveEffects()) {
+				if (inst.showIcon()) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private Iterable<MobEffectInstance> effects(boolean preview) {

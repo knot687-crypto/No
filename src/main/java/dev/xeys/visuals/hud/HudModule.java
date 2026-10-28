@@ -13,6 +13,7 @@ public abstract class HudModule extends Module {
 	public final HudPosition position;
 	protected float width = 40f;
 	protected float height = 16f;
+	private boolean laidOut;
 
 	protected HudModule(String id, String name, char icon, String description, HudPosition.Anchor anchor, float x, float y) {
 		super(id, name, Category.HUD, icon, description);
@@ -32,6 +33,12 @@ public abstract class HudModule extends Module {
 
 	public final void layoutFrame(boolean preview) {
 		this.layout(preview);
+		this.laidOut = true;
+	}
+
+	/** Whether {@link #width()} and {@link #height()} come from a real layout yet. */
+	public final boolean laidOut() {
+		return this.laidOut;
 	}
 
 	public final void drawFrame(GuiGraphics g, float partialTick, boolean preview) {

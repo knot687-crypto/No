@@ -123,17 +123,13 @@ public final class TargetHudModule extends HudModule implements Events.ClientTic
 		this.appear.snap(0f);
 	}
 
+	private boolean live() {
+		return this.target != null && Clock.time() - this.lastSeen < this.keep.value();
+	}
+
 	@Override
 	public boolean hasContent(boolean preview) {
-		boolean live = this.target != null && Clock.time() - this.lastSeen < this.keep.value();
-		if (live || preview) {
-			if (this.appear.target() < 1f) {
-				this.appear.to(1f, 0.32f, Easing.OUT_CUBIC);
-			}
-		} else if (this.appear.target() > 0f) {
-			this.appear.to(0f, 0.3f, Easing.IN_OUT_CUBIC);
-		}
-		if (this.appear.get() <= 0f && !live) {
+		if (!preview && !this.live() && this.appear.get() <= 0f) {
 			this.target = null;
 			return false;
 		}
@@ -142,8 +138,15 @@ public final class TargetHudModule extends HudModule implements Events.ClientTic
 
 	@Override
 	protected void layout(boolean preview) {
+		boolean visible = preview || this.live();
+		if (visible && this.appear.target() < 1f) {
+			this.appear.to(1f, 0.32f, Easing.OUT_CUBIC);
+		} else if (!visible && this.appear.target() > 0f) {
+			this.appear.to(0f, 0.3f, Easing.IN_OUT_CUBIC);
+		}
 		Minecraft mc = Minecraft.getInstance();
-		LivingEntity e = this.target;
+		// Live target, else the last one while fading out; previews without a target use you as a stand-in.
+		LivingEntity e = this.live() || !preview ? this.target : null;
 		if (e == null && preview) {
 			e = mc.player;
 		}
