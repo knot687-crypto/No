@@ -39,6 +39,8 @@ public final class RenderFrame {
 
 	/** Runs after the world (and any immediate background) is drawn, right before the GUI flush. */
 	public static void beforeGuiFlush(GuiRenderState state) {
+		// Screen effects grade the world image first, so glass panels blur the graded result.
+		dev.xeys.visuals.render.post.ScreenEffects.process();
 		dev.xeys.visuals.ui.notify.Notifications.render(state);
 		ScreenFade.render(state);
 		if (sceneBlurRequested) {

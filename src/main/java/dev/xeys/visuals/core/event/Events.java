@@ -1,6 +1,8 @@
 package dev.xeys.visuals.core.event;
 
 import dev.xeys.visuals.core.module.Module;
+import dev.xeys.visuals.render.post.ScreenFx;
+import net.minecraft.client.gui.GuiGraphics;
 
 /**
  * Typed event hubs. A module receives an event simply by implementing the interface; it is subscribed
@@ -17,8 +19,20 @@ public final class Events {
 		void onFrameStart();
 	}
 
+	/** Adds to the combined screen-effects pass (world image only, under the HUD). */
+	public interface ScreenEffect {
+		void contribute(ScreenFx fx, float partialTick);
+	}
+
+	/** 2D effects drawn over the world, under the HUD elements (hit markers, damage indicators...). */
+	public interface Overlay {
+		void renderOverlay(GuiGraphics g, float partialTick);
+	}
+
 	public static final Listeners<ClientTick> CLIENT_TICK = new Listeners<>();
 	public static final Listeners<FrameStart> FRAME_START = new Listeners<>();
+	public static final Listeners<ScreenEffect> SCREEN_FX = new Listeners<>();
+	public static final Listeners<Overlay> OVERLAY = new Listeners<>();
 
 	private Events() {
 	}
@@ -30,6 +44,12 @@ public final class Events {
 		if (module instanceof FrameStart l) {
 			FRAME_START.add(l);
 		}
+		if (module instanceof ScreenEffect l) {
+			SCREEN_FX.add(l);
+		}
+		if (module instanceof Overlay l) {
+			OVERLAY.add(l);
+		}
 		WorldEvents.subscribe(module);
 	}
 
@@ -40,6 +60,12 @@ public final class Events {
 		if (module instanceof FrameStart l) {
 			FRAME_START.remove(l);
 		}
+		if (module instanceof ScreenEffect l) {
+			SCREEN_FX.remove(l);
+		}
+		if (module instanceof Overlay l) {
+			OVERLAY.remove(l);
+		}
 		WorldEvents.unsubscribe(module);
 	}
 
@@ -47,6 +73,13 @@ public final class Events {
 		Object[] items = CLIENT_TICK.snapshot();
 		for (Object item : items) {
 			((ClientTick) item).onClientTick();
+		}
+	}
+
+	public static void renderOverlays(GuiGraphics g, float partialTick) {
+		Object[] items = OVERLAY.snapshot();
+		for (Object item : items) {
+			((Overlay) item).renderOverlay(g, partialTick);
 		}
 	}
 

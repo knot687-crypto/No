@@ -27,6 +27,19 @@ import dev.xeys.visuals.modules.hud.SpeedModule;
 import dev.xeys.visuals.modules.hud.TargetHudModule;
 import dev.xeys.visuals.modules.hud.WatermarkModule;
 import dev.xeys.visuals.modules.hud.WeatherModule;
+import dev.xeys.visuals.modules.screen.AmbientGlowModule;
+import dev.xeys.visuals.modules.screen.ChromaticAberrationModule;
+import dev.xeys.visuals.modules.screen.ColorFilterModule;
+import dev.xeys.visuals.modules.screen.DamageFlashModule;
+import dev.xeys.visuals.modules.screen.FilmGrainModule;
+import dev.xeys.visuals.modules.screen.LetterboxModule;
+import dev.xeys.visuals.modules.screen.LowHealthModule;
+import dev.xeys.visuals.modules.screen.MonochromeModule;
+import dev.xeys.visuals.modules.screen.PixelateModule;
+import dev.xeys.visuals.modules.screen.ScanlinesModule;
+import dev.xeys.visuals.modules.screen.SharpenModule;
+import dev.xeys.visuals.modules.screen.UnderwaterRippleModule;
+import dev.xeys.visuals.modules.screen.VignetteModule;
 
 /** Registers the feature modules, batch by batch. Registration order is the order the ClickGUI lists them. */
 final class ModuleCatalog {
@@ -35,6 +48,24 @@ final class ModuleCatalog {
 
 	static void registerAll() {
 		hudBatch1();
+		screenBatch1();
+	}
+
+	/** Screen batch 1: post effects in the combined screen pass, then 2D overlays and screen restyles. */
+	private static void screenBatch1() {
+		ModuleManager.register(new VignetteModule());
+		ModuleManager.register(new FilmGrainModule());
+		ModuleManager.register(new ChromaticAberrationModule());
+		ModuleManager.register(new SharpenModule());
+		ModuleManager.register(new ColorFilterModule());
+		ModuleManager.register(new MonochromeModule());
+		ModuleManager.register(new AmbientGlowModule());
+		ModuleManager.register(new LowHealthModule());
+		ModuleManager.register(new DamageFlashModule());
+		ModuleManager.register(new UnderwaterRippleModule());
+		ModuleManager.register(new LetterboxModule());
+		ModuleManager.register(new ScanlinesModule());
+		ModuleManager.register(new PixelateModule());
 	}
 
 	/**

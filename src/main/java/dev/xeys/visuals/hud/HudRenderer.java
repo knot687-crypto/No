@@ -15,10 +15,13 @@ public final class HudRenderer {
 		if (mc.screen instanceof HudEditorScreen) {
 			return;
 		}
+		float partial = delta.getGameTimeDeltaPartialTick(false);
+		if (mc.level != null) {
+			dev.xeys.visuals.core.event.Events.renderOverlays(g, partial);
+		}
 		if (HudStyle.config().hideInDebug.on() && mc.debugEntries.isOverlayVisible()) {
 			return;
 		}
-		float partial = delta.getGameTimeDeltaPartialTick(false);
 		List<HudModule> visible = HudLayout.compute(g.guiWidth(), g.guiHeight(), false);
 		for (int i = 0, n = visible.size(); i < n; i++) {
 			drawModule(g, visible.get(i), partial, false);

@@ -127,6 +127,15 @@ public final class XeysPipelines {
 		.withoutBlend()
 		.build());
 
+	/** All 2D screen effects (vignette, grain, chromatic aberration, grading...) in one pass. */
+	public static final RenderPipeline SCREEN_FX = register(RenderPipeline.builder(FULLSCREEN)
+		.withLocation(Xeys.id("pipeline/screen_fx"))
+		.withFragmentShader(Xeys.id("post/screen_fx"))
+		.withSampler("InSampler")
+		.withUniform("ScreenFx", UniformType.UNIFORM_BUFFER)
+		.withoutBlend()
+		.build());
+
 	/** Static sky gradient and nebula, rendered once per resize into a half-resolution cache. */
 	public static final RenderPipeline MOON_NEBULA = register(RenderPipeline.builder(FULLSCREEN)
 		.withLocation(Xeys.id("pipeline/moon_nebula"))
