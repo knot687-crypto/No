@@ -29,6 +29,10 @@ import dev.xeys.visuals.modules.hud.WatermarkModule;
 import dev.xeys.visuals.modules.hud.WeatherModule;
 import dev.xeys.visuals.modules.screen.AmbientGlowModule;
 import dev.xeys.visuals.modules.screen.ChromaticAberrationModule;
+import dev.xeys.visuals.modules.screen.DeathScreenModule;
+import dev.xeys.visuals.modules.screen.LoadingScreenModule;
+import dev.xeys.visuals.modules.screen.PauseMenuModule;
+import dev.xeys.visuals.modules.screen.ScreenTransitionsModule;
 import dev.xeys.visuals.modules.screen.ColorFilterModule;
 import dev.xeys.visuals.modules.screen.DamageDirectionModule;
 import dev.xeys.visuals.modules.screen.DamageFlashModule;
@@ -47,6 +51,7 @@ import dev.xeys.visuals.modules.screen.SpeedLinesModule;
 import dev.xeys.visuals.modules.screen.TooltipStyleModule;
 import dev.xeys.visuals.modules.screen.UnderwaterRippleModule;
 import dev.xeys.visuals.modules.screen.VignetteModule;
+import dev.xeys.visuals.modules.screen.WidgetStyleModule;
 
 /** Registers the feature modules, batch by batch. Registration order is the order the ClickGUI lists them. */
 final class ModuleCatalog {
@@ -80,6 +85,11 @@ final class ModuleCatalog {
 		ModuleManager.register(new ScreenshotFlashModule());
 		ModuleManager.register(new InventoryBackgroundModule());
 		ModuleManager.register(new TooltipStyleModule());
+		ModuleManager.register(new WidgetStyleModule());
+		ModuleManager.register(new PauseMenuModule());
+		ModuleManager.register(new DeathScreenModule());
+		ModuleManager.register(new LoadingScreenModule());
+		ModuleManager.register(new ScreenTransitionsModule());
 	}
 
 	/**

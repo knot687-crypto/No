@@ -37,6 +37,7 @@ public final class XeysClient implements ClientModInitializer {
 
 		Modules.init();
 		ConfigManager.init();
+		dev.xeys.visuals.core.Session.init();
 
 		Keybinds.register();
 		WorldEntryTransition.register();
