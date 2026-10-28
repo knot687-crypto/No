@@ -1,6 +1,6 @@
 package dev.xeys.visuals.mixin;
 
-import dev.xeys.visuals.modules.screen.HitMarkerModule;
+import dev.xeys.visuals.core.combat.HitTracker;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +13,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 abstract class MultiPlayerGameModeMixin {
 	@Inject(method = "attack", at = @At("HEAD"))
 	private void xeys$attack(Player player, Entity target, CallbackInfo ci) {
-		HitMarkerModule.onAttack(player, target);
+		HitTracker.onAttack(player, target);
 	}
 }

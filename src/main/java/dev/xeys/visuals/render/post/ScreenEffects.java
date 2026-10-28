@@ -23,7 +23,7 @@ import org.jspecify.annotations.Nullable;
  * writes the result back. Frames with no active effect cost nothing.
  */
 public final class ScreenEffects {
-	private static final int UBO_SIZE = 16 * 13;
+	private static final int UBO_SIZE = 16 * 14;
 	private static final UniformSlots UNIFORMS = new UniformSlots("XEYS screen fx", UBO_SIZE, 1);
 	private static final ScreenFx FX = new ScreenFx();
 	private static @Nullable GpuTexture copy;
@@ -92,6 +92,7 @@ public final class ScreenEffects {
 			putColor(b, f.flashColor, f.flash);
 			b.putVec4(f.pixelSize, f.letterbox, f.wave, f.waveSpeed);
 			putColor(b, f.glowColor, f.glow);
+			b.putVec4(f.temperature, f.tintShift, f.vibrance, 0f);
 		});
 	}
 

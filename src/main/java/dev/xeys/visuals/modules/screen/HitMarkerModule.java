@@ -2,6 +2,7 @@ package dev.xeys.visuals.modules.screen;
 
 import dev.xeys.visuals.anim.Clock;
 import dev.xeys.visuals.anim.Easing;
+import dev.xeys.visuals.core.combat.HitTracker;
 import dev.xeys.visuals.core.event.Events;
 import dev.xeys.visuals.core.module.Category;
 import dev.xeys.visuals.core.module.Module;
@@ -12,17 +13,12 @@ import dev.xeys.visuals.render.Draw;
 import dev.xeys.visuals.ui.Icons;
 import dev.xeys.visuals.util.Colors;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 
 /**
  * An X that pops around the crosshair when one of your hits lands: white for a hit, gold for a critical
  * hit and red when it was the finishing blow. Shown only once the game confirms the target was hurt.
  */
-public final class HitMarkerModule extends Module implements Events.Overlay, Events.FrameStart {
-	private static HitMarkerModule instance;
+public final class HitMarkerModule extends Module implements Events.Overlay {
 
 	private final ColorSetting hitColor = this.add(new ColorSetting("hit_color", "Hit", 0xFFFFFFFF).group("Colors"));
 	private final ColorSetting critColor = this.add(new ColorSetting("crit_color", "Critical", 0xFFFFC94D).group("Colors"));
@@ -36,49 +32,30 @@ public final class HitMarkerModule extends Module implements Events.Overlay, Eve
 	private final NumberSetting duration = this.add(new NumberSetting("duration", "Duration", 0.35f, 0.15f, 1f, 0.05f).unit("s").decimals(2)
 		.group("Marker"));
 
-	private LivingEntity pending;
-	private double pendingAt;
-	private int pendingHurt;
-	private boolean pendingCrit;
-	private LivingEntity shown;
 	private double shownAt = -10.0;
 	private int kind;
 
 	public HitMarkerModule() {
 		super("hit_marker", "Hit Marker", Category.SCREEN, Icons.CROSSHAIR, "An X at the crosshair when your hits land");
-		instance = this;
-	}
-
-	public static void onAttack(Player player, Entity target) {
-		HitMarkerModule m = instance;
-		if (m == null || !m.isEnabled() || !(target instanceof LivingEntity living)) {
-			return;
-		}
-		m.pending = living;
-		m.pendingAt = Clock.time();
-		m.pendingHurt = living.hurtTime;
-		m.pendingCrit = player.fallDistance > 0.0 && !player.onGround() && !player.onClimbable() && !player.isInWater()
-			&& !player.hasEffect(MobEffects.BLINDNESS) && !player.isPassenger() && !player.isSprinting();
-	}
-
-	@Override
-	public void onFrameStart() {
-		LivingEntity p = this.pending;
-		if (p != null) {
-			if (Clock.time() - this.pendingAt > 0.6) {
-				this.pending = null;
-			} else if (p.hurtTime > this.pendingHurt || p.isDeadOrDying()) {
-				this.shown = p;
-				this.shownAt = Clock.time();
-				this.kind = p.isDeadOrDying() && this.kills.on() ? 2 : (this.pendingCrit ? 1 : 0);
-				this.pending = null;
+		HitTracker.listen((target, hit) -> {
+			if (!this.isEnabled()) {
+				return;
 			}
-		}
-		// A hit that turns out to be the kill a moment later upgrades to a kill marker.
-		if (this.shown != null && this.kind != 2 && this.kills.on() && this.shown.isDeadOrDying() && Clock.time() - this.shownAt < 0.3) {
-			this.kind = 2;
+			if (hit == HitTracker.Kind.KILL && !this.kills.on()) {
+				// Without kill markers a kill is a plain hit, unless that hit was already marked a moment ago.
+				if (Clock.time() - this.shownAt < 0.3) {
+					return;
+				}
+				this.kind = 0;
+			} else {
+				this.kind = switch (hit) {
+					case HIT -> 0;
+					case CRITICAL -> 1;
+					case KILL -> 2;
+				};
+			}
 			this.shownAt = Clock.time();
-		}
+		});
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package dev.xeys.visuals.core.event;
 
 import dev.xeys.visuals.core.module.Module;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.minecraft.client.renderer.state.BlockOutlineRenderState;
 
 /** World-render hooks (Fabric WorldRenderEvents), dispatched to enabled modules only. */
 public final class WorldEvents {
@@ -17,9 +18,15 @@ public final class WorldEvents {
 		void onEndMain(WorldRenderContext context);
 	}
 
+	/** Draws over or instead of the block outline; return false to suppress vanilla's outline. */
+	public interface BlockOutline {
+		boolean onBlockOutline(WorldRenderContext context, BlockOutlineRenderState outline);
+	}
+
 	public static final Listeners<AfterEntities> AFTER_ENTITIES = new Listeners<>();
 	public static final Listeners<BeforeTranslucent> BEFORE_TRANSLUCENT = new Listeners<>();
 	public static final Listeners<EndMain> END_MAIN = new Listeners<>();
+	public static final Listeners<BlockOutline> BLOCK_OUTLINE = new Listeners<>();
 
 	private WorldEvents() {
 	}
@@ -34,6 +41,9 @@ public final class WorldEvents {
 		if (module instanceof EndMain l) {
 			END_MAIN.add(l);
 		}
+		if (module instanceof BlockOutline l) {
+			BLOCK_OUTLINE.add(l);
+		}
 	}
 
 	static void unsubscribe(Module module) {
@@ -45,6 +55,9 @@ public final class WorldEvents {
 		}
 		if (module instanceof EndMain l) {
 			END_MAIN.remove(l);
+		}
+		if (module instanceof BlockOutline l) {
+			BLOCK_OUTLINE.remove(l);
 		}
 	}
 }

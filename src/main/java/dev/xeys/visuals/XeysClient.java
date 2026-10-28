@@ -59,6 +59,13 @@ public final class XeysClient implements ClientModInitializer {
 				((WorldEvents.BeforeTranslucent) l).onBeforeTranslucent(ctx);
 			}
 		});
+		WorldRenderEvents.BEFORE_BLOCK_OUTLINE.register((ctx, outline) -> {
+			boolean vanilla = true;
+			for (Object l : WorldEvents.BLOCK_OUTLINE.snapshot()) {
+				vanilla &= ((WorldEvents.BlockOutline) l).onBlockOutline(ctx, outline);
+			}
+			return vanilla;
+		});
 		WorldRenderEvents.END_MAIN.register(ctx -> {
 			for (Object l : WorldEvents.END_MAIN.snapshot()) {
 				((WorldEvents.EndMain) l).onEndMain(ctx);

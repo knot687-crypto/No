@@ -34,7 +34,14 @@ public final class Events {
 		}
 	}
 
+	/** Adjusts the client world's environment (sky, fog and cloud colors and distances). Visual only. */
+	public interface Environment {
+		/** Returns the value to use; {@code value} may already be adjusted by another module. */
+		Object modifyEnvironment(net.minecraft.world.attribute.EnvironmentAttribute<?> attribute, Object value);
+	}
+
 	public static final Listeners<ClientTick> CLIENT_TICK = new Listeners<>();
+	public static final Listeners<Environment> ENVIRONMENT = new Listeners<>();
 	public static final Listeners<FrameStart> FRAME_START = new Listeners<>();
 	public static final Listeners<ScreenEffect> SCREEN_FX = new Listeners<>();
 	public static final Listeners<Overlay> OVERLAY = new Listeners<>();
@@ -52,6 +59,9 @@ public final class Events {
 		if (module instanceof ScreenEffect l) {
 			SCREEN_FX.add(l);
 		}
+		if (module instanceof Environment l) {
+			ENVIRONMENT.add(l);
+		}
 		if (module instanceof Overlay l) {
 			OVERLAY.add(l);
 		}
@@ -67,6 +77,9 @@ public final class Events {
 		}
 		if (module instanceof ScreenEffect l) {
 			SCREEN_FX.remove(l);
+		}
+		if (module instanceof Environment l) {
+			ENVIRONMENT.remove(l);
 		}
 		if (module instanceof Overlay l) {
 			OVERLAY.remove(l);

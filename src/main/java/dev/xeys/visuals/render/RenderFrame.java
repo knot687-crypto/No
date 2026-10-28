@@ -18,6 +18,7 @@ public final class RenderFrame {
 		ClipStack.reset();
 		sceneBlurRequested = false;
 		WorldEntryTransition.frame();
+		dev.xeys.visuals.core.combat.HitTracker.frame();
 		dev.xeys.visuals.core.event.Events.frameStart();
 		if (DEBUG_FRAMES && Clock.frame() % 30 == 0) {
 			net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();

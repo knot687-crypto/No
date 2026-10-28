@@ -18,7 +18,8 @@ public final class DayCounterModule extends InfoHudModule {
 	@Override
 	protected void update(StringBuilder out, boolean preview) {
 		var level = Minecraft.getInstance().level;
-		long dayTime = level != null ? level.getDayTime() : 30000L;
+		// The real time, even while Time Changer shows a different one.
+		long dayTime = level != null ? level.getLevelData().getDayTime() : 30000L;
 		out.append(dayTime / 24000L + 1L);
 		if (this.time.on()) {
 			// Minecraft day starts at 06:00.

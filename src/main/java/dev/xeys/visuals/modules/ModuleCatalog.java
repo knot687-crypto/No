@@ -28,6 +28,18 @@ import dev.xeys.visuals.modules.hud.TargetHudModule;
 import dev.xeys.visuals.modules.hud.WatermarkModule;
 import dev.xeys.visuals.modules.hud.WeatherModule;
 import dev.xeys.visuals.modules.screen.AmbientGlowModule;
+import dev.xeys.visuals.modules.world.AtmosphericFogModule;
+import dev.xeys.visuals.modules.world.BlockOutlineModule;
+import dev.xeys.visuals.modules.world.BlockOverlayModule;
+import dev.xeys.visuals.modules.world.CloudStyleModule;
+import dev.xeys.visuals.modules.world.ColorGradingModule;
+import dev.xeys.visuals.modules.world.DroppedItemStyleModule;
+import dev.xeys.visuals.modules.world.HitColorModule;
+import dev.xeys.visuals.modules.world.HitParticlesModule;
+import dev.xeys.visuals.modules.world.ItemPhysicsModule;
+import dev.xeys.visuals.modules.world.SkyTintModule;
+import dev.xeys.visuals.modules.world.TimeChangerModule;
+import dev.xeys.visuals.modules.world.WeatherChangerModule;
 import dev.xeys.visuals.modules.screen.ChromaticAberrationModule;
 import dev.xeys.visuals.modules.screen.DeathScreenModule;
 import dev.xeys.visuals.modules.screen.LoadingScreenModule;
@@ -61,6 +73,23 @@ final class ModuleCatalog {
 	static void registerAll() {
 		hudBatch1();
 		screenBatch1();
+		worldBatch1();
+	}
+
+	/** World batch 1: block highlighting, time, weather, sky and fog, grading, combat feedback and items. */
+	private static void worldBatch1() {
+		ModuleManager.register(new BlockOutlineModule());
+		ModuleManager.register(new BlockOverlayModule());
+		ModuleManager.register(new TimeChangerModule());
+		ModuleManager.register(new WeatherChangerModule());
+		ModuleManager.register(new SkyTintModule());
+		ModuleManager.register(new AtmosphericFogModule());
+		ModuleManager.register(new CloudStyleModule());
+		ModuleManager.register(new ColorGradingModule());
+		ModuleManager.register(new HitColorModule());
+		ModuleManager.register(new HitParticlesModule());
+		ModuleManager.register(new ItemPhysicsModule());
+		ModuleManager.register(new DroppedItemStyleModule());
 	}
 
 	/** Screen batch 1: post effects in the combined screen pass, then 2D overlays and screen restyles. */

@@ -21,6 +21,7 @@ layout(std140) uniform ScreenFx {
     vec4 Flash;         // rgb, amount: a brief full-screen wash, stronger at the edges
     vec4 Frame;         // pixel size, letterbox bar height (fraction of height), wave amplitude (px), wave speed
     vec4 Glow;          // rgb, amount: additive light along the edges
+    vec4 Balance;       // temperature (-1 cool .. 1 warm), tint (-1 green .. 1 magenta), vibrance, 0
 };
 
 in vec2 texCoord;
@@ -81,10 +82,21 @@ void main() {
         col = clamp(col + (col - n * 0.25) * Grade.w, 0.0, 1.0);
     }
 
+    if (Balance.x != 0.0 || Balance.y != 0.0) {
+        // White balance: warm raises red and lowers blue; tint trades green against magenta.
+        col *= vec3(1.0 + Balance.x * 0.12 + Balance.y * 0.04, 1.0 - Balance.y * 0.08, 1.0 - Balance.x * 0.12 + Balance.y * 0.04);
+    }
+
     col += Grade.z;
     col = (col - 0.5) * Grade.y + 0.5;
     float l = luma(col);
     col = mix(vec3(l), col, Grade.x);
+
+    if (Balance.z != 0.0) {
+        // Vibrance: saturate muted colors more than already-vivid ones (protects skin and sky).
+        float sat = max(col.r, max(col.g, col.b)) - min(col.r, min(col.g, col.b));
+        col = mix(vec3(luma(col)), col, 1.0 + Balance.z * (1.0 - sat));
+    }
 
     if (Mono.x > 0.0) {
         vec3 m;

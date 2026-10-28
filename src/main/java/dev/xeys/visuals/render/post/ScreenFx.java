@@ -47,6 +47,10 @@ public final class ScreenFx {
 	public int glowColor;
 	public float glow;
 
+	public float temperature;
+	public float tintShift;
+	public float vibrance;
+
 	public ScreenFx() {
 		this.reset();
 	}
@@ -83,12 +87,16 @@ public final class ScreenFx {
 		this.waveSpeed = 1f;
 		this.glowColor = 0xFFFFFFFF;
 		this.glow = 0f;
+		this.temperature = 0f;
+		this.tintShift = 0f;
+		this.vibrance = 0f;
 	}
 
 	/** Whether anything differs from the untouched image. */
 	public boolean active() {
 		return this.vignette > 0f || this.grain > 0f || this.chroma > 0f || this.scanlines > 0f || this.saturation != 1f
 			|| this.contrast != 1f || this.brightness != 0f || this.sharpen > 0f || this.tintAmount > 0f || this.mono > 0f
-			|| this.edge > 0f || this.flash > 0f || this.pixelSize > 1f || this.letterbox > 0f || this.wave > 0f || this.glow > 0f;
+			|| this.edge > 0f || this.flash > 0f || this.pixelSize > 1f || this.letterbox > 0f || this.wave > 0f || this.glow > 0f || this.temperature != 0f || this.tintShift != 0f
+			|| this.vibrance != 0f;
 	}
 }
