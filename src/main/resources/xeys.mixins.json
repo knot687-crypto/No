@@ -11,7 +11,12 @@
 		"KeyboardHandlerMixin",
 		"MinecraftMixin",
 		"MouseHandlerMixin",
-		"PanoramaRendererMixin"
+		"MultiPlayerGameModeMixin",
+		"PanoramaRendererMixin",
+		"PlayerMixin",
+		"ScreenMixin",
+		"ScreenshotMixin",
+		"TooltipRenderUtilMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

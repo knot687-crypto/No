@@ -27,6 +27,11 @@ public final class Events {
 	/** 2D effects drawn over the world, under the HUD elements (hit markers, damage indicators...). */
 	public interface Overlay {
 		void renderOverlay(GuiGraphics g, float partialTick);
+
+		/** Cards and alerts that must not hide behind HUD elements draw after them. */
+		default boolean aboveHud() {
+			return false;
+		}
 	}
 
 	public static final Listeners<ClientTick> CLIENT_TICK = new Listeners<>();
@@ -76,10 +81,13 @@ public final class Events {
 		}
 	}
 
-	public static void renderOverlays(GuiGraphics g, float partialTick) {
+	public static void renderOverlays(GuiGraphics g, float partialTick, boolean aboveHud) {
 		Object[] items = OVERLAY.snapshot();
 		for (Object item : items) {
-			((Overlay) item).renderOverlay(g, partialTick);
+			Overlay o = (Overlay) item;
+			if (o.aboveHud() == aboveHud) {
+				o.renderOverlay(g, partialTick);
+			}
 		}
 	}
 

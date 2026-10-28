@@ -72,7 +72,9 @@ void main() {
     if (vB.x > 0.5) {
         fill = mix(fill, vC, along);
     }
-    float cov = clamp(0.5 - d / px, 0.0, 1.0);
+    // ParamsB.y > 0: soft glow falloff of that width instead of a crisp edge.
+    float arcSoft = vB.y;
+    float cov = arcSoft > 0.0 ? 0.5 - 0.5 * xeys_erf(d / (arcSoft * 0.5 * 1.41421356)) : clamp(0.5 - d / px, 0.0, 1.0);
     outP = premul(fill) * cov;
 #elif defined(SHAPE_LINE)
     // vA = (half length, half thickness, round caps (1) or square (0), softness)

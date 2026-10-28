@@ -30,14 +30,21 @@ import dev.xeys.visuals.modules.hud.WeatherModule;
 import dev.xeys.visuals.modules.screen.AmbientGlowModule;
 import dev.xeys.visuals.modules.screen.ChromaticAberrationModule;
 import dev.xeys.visuals.modules.screen.ColorFilterModule;
+import dev.xeys.visuals.modules.screen.DamageDirectionModule;
 import dev.xeys.visuals.modules.screen.DamageFlashModule;
+import dev.xeys.visuals.modules.screen.DurabilityAlertModule;
+import dev.xeys.visuals.modules.screen.HitMarkerModule;
+import dev.xeys.visuals.modules.screen.InventoryBackgroundModule;
 import dev.xeys.visuals.modules.screen.FilmGrainModule;
 import dev.xeys.visuals.modules.screen.LetterboxModule;
 import dev.xeys.visuals.modules.screen.LowHealthModule;
 import dev.xeys.visuals.modules.screen.MonochromeModule;
 import dev.xeys.visuals.modules.screen.PixelateModule;
 import dev.xeys.visuals.modules.screen.ScanlinesModule;
+import dev.xeys.visuals.modules.screen.ScreenshotFlashModule;
 import dev.xeys.visuals.modules.screen.SharpenModule;
+import dev.xeys.visuals.modules.screen.SpeedLinesModule;
+import dev.xeys.visuals.modules.screen.TooltipStyleModule;
 import dev.xeys.visuals.modules.screen.UnderwaterRippleModule;
 import dev.xeys.visuals.modules.screen.VignetteModule;
 
@@ -66,6 +73,13 @@ final class ModuleCatalog {
 		ModuleManager.register(new LetterboxModule());
 		ModuleManager.register(new ScanlinesModule());
 		ModuleManager.register(new PixelateModule());
+		ModuleManager.register(new DamageDirectionModule());
+		ModuleManager.register(new HitMarkerModule());
+		ModuleManager.register(new SpeedLinesModule());
+		ModuleManager.register(new DurabilityAlertModule());
+		ModuleManager.register(new ScreenshotFlashModule());
+		ModuleManager.register(new InventoryBackgroundModule());
+		ModuleManager.register(new TooltipStyleModule());
 	}
 
 	/**

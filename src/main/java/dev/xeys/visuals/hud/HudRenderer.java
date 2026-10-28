@@ -17,7 +17,7 @@ public final class HudRenderer {
 		}
 		float partial = delta.getGameTimeDeltaPartialTick(false);
 		if (mc.level != null) {
-			dev.xeys.visuals.core.event.Events.renderOverlays(g, partial);
+			dev.xeys.visuals.core.event.Events.renderOverlays(g, partial, false);
 		}
 		if (HudStyle.config().hideInDebug.on() && mc.debugEntries.isOverlayVisible()) {
 			return;
@@ -25,6 +25,9 @@ public final class HudRenderer {
 		List<HudModule> visible = HudLayout.compute(g.guiWidth(), g.guiHeight(), false);
 		for (int i = 0, n = visible.size(); i < n; i++) {
 			drawModule(g, visible.get(i), partial, false);
+		}
+		if (mc.level != null) {
+			dev.xeys.visuals.core.event.Events.renderOverlays(g, partial, true);
 		}
 	}
 
