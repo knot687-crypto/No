@@ -102,6 +102,11 @@ public final class TargetHudModule extends HudModule implements Events.ClientTic
 	@Override
 	public void onClientTick() {
 		Minecraft mc = Minecraft.getInstance();
+		if (this.target != null && (mc.level == null || this.target.level() != mc.level)) {
+			// Never hold on to an entity from a world we have left.
+			this.target = null;
+			this.lastSeen = -100.0;
+		}
 		Entity e = mc.crosshairPickEntity;
 		if (e instanceof LivingEntity le && le.isAlive() && mc.player != null && !le.isInvisibleTo(mc.player)
 			&& (!this.playersOnly.on() || le instanceof Player)) {
@@ -267,7 +272,7 @@ public final class TargetHudModule extends HudModule implements Events.ClientTic
 		Draw.rect(g, x, by, bw, bh, bh * 0.5f, Colors.withAlpha(0xFFFFFF, 0.08f * a));
 		float shown = Math.max(0f, Math.min(this.shown.get(), 1f));
 		if (this.trail.on() && this.trailValue > shown + 0.002f) {
-			Draw.rect(g, x, by, bw * this.trailValue, bh, bh * 0.5f, Colors.withAlpha(0xFFFFFF, 0.32f * a));
+			Draw.rect(g, x, by, bw * this.trailValue, bh, bh * 0.5f, Colors.withAlpha(0xFFFFFF, 0.45f * a));
 		}
 		if (shown > 0.002f) {
 			float fw = Math.max(bh, bw * shown);

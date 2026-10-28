@@ -55,7 +55,7 @@ public final class KeystrokesModule extends HudModule {
 	private double labelsAt = -10.0;
 
 	public KeystrokesModule() {
-		super("keystrokes", "Keystrokes", Icons.KEYBOARD, "Your movement keys and clicks, animated", HudPosition.Anchor.BOTTOM_LEFT, 6f, -6f);
+		super("keystrokes", "Keystrokes", Icons.KEYBOARD, "Your movement keys and clicks, animated", HudPosition.Anchor.TOP_LEFT, 6f, 260f);
 		for (int i = 0; i < KEYS; i++) {
 			this.press[i] = new Anim(0f);
 			this.rippleAnim[i] = new Anim(1f);
@@ -190,9 +190,10 @@ public final class KeystrokesModule extends HudModule {
 		}
 		float rp = this.rippleAnim[index].get();
 		if (this.ripple.on() && rp < 1f) {
+			// A soft flash that spreads from the center and fades, clipped to the key.
 			Draw.pushClip(g, x, y, x + w, y + h);
-			float rr = Math.max(w, h) * 0.62f * rp;
-			Draw.ring(g, cx, cy, rr, 1.5f + 2f * (1f - rp), Colors.withAlpha(0xFFFFFF, 0.38f * (1f - rp)));
+			float rr = Math.max(w * 0.5f, h * 0.5f) * (0.35f + 0.95f * rp);
+			Draw.circleShape(g, cx, cy, rr).color(Colors.withAlpha(0xFFFFFF, 0.3f * (1f - rp) * (1f - rp))).soft(rr * 0.35f).submit();
 			Draw.popClip();
 		}
 

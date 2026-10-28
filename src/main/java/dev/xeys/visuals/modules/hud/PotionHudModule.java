@@ -60,8 +60,8 @@ public final class PotionHudModule extends HudModule {
 	private final MobEffectInstance[] demo = new MobEffectInstance[3];
 
 	public PotionHudModule() {
-		super("potion_hud", "Potion Effects", Icons.SPARKLES, "Active effects with timers and progress bars", HudPosition.Anchor.MIDDLE_RIGHT,
-			-6f, 0f);
+		super("potion_hud", "Potion Effects", Icons.SPARKLES, "Active effects with timers and progress bars", HudPosition.Anchor.TOP_RIGHT,
+			-6f, 6f);
 		this.enabledByDefault();
 		instance = this;
 	}

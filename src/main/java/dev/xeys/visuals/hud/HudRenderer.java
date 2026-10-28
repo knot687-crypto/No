@@ -1,12 +1,11 @@
 package dev.xeys.visuals.hud;
 
-import dev.xeys.visuals.core.module.ModuleManager;
 import java.util.List;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
-/** Renders every enabled HUD module at its anchored position. Registered as a Fabric HUD layer. */
+/** Renders every enabled HUD module where {@link HudLayout} placed it. Registered as a Fabric HUD layer. */
 public final class HudRenderer {
 	private HudRenderer() {
 	}
@@ -20,26 +19,17 @@ public final class HudRenderer {
 			return;
 		}
 		float partial = delta.getGameTimeDeltaPartialTick(false);
-		float sw = g.guiWidth();
-		float sh = g.guiHeight();
-		List<HudModule> modules = ModuleManager.hudModules();
-		for (int i = 0, n = modules.size(); i < n; i++) {
-			HudModule m = modules.get(i);
-			if (m.isEnabled() && m.hasContent(false)) {
-				renderModule(g, m, sw, sh, partial, false);
-			}
+		List<HudModule> visible = HudLayout.compute(g.guiWidth(), g.guiHeight(), false);
+		for (int i = 0, n = visible.size(); i < n; i++) {
+			drawModule(g, visible.get(i), partial, false);
 		}
-		HudPlacement.resolve(sw, sh, false);
 	}
 
-	/** Lays out and draws one module at its configured position. */
-	public static void renderModule(GuiGraphics g, HudModule m, float screenW, float screenH, float partial, boolean preview) {
-		m.layoutFrame(preview);
+	/** Draws one already laid-out module at its frame position. */
+	public static void drawModule(GuiGraphics g, HudModule m, float partial, boolean preview) {
 		float s = m.position.scale();
-		float x = m.position.left(screenW, m.width() * s);
-		float y = m.position.top(screenH, m.height() * s);
 		g.pose().pushMatrix();
-		g.pose().translate(x, y);
+		g.pose().translate(m.frameLeft(), m.frameTop());
 		g.pose().scale(s, s);
 		m.drawFrame(g, partial, preview);
 		g.pose().popMatrix();

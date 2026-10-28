@@ -50,12 +50,14 @@ public final class ModuleListModule extends HudModule {
 	private final NumberSetting wave = this.add(new NumberSetting("wave", "Color Wave", 6f, 0f, 20f, 1f).unit("%")
 		.describe("Phase offset between rows for rainbow and pulse colors").group("Colors"));
 
+	private static final int PREVIEW_SAMPLES = 6;
 	private final List<Entry> entries = new ArrayList<>();
 	private final List<Entry> order = new ArrayList<>();
+	private int builtFrom = -1;
 	private boolean rightAligned;
 
 	public ModuleListModule() {
-		super("module_list", "Module List", Icons.LIST, "Your enabled modules, sorted and animated", HudPosition.Anchor.TOP_RIGHT, -6f, 6f);
+		super("module_list", "Module List", Icons.LIST, "Your enabled modules, sorted and animated", HudPosition.Anchor.TOP_RIGHT, -6f, 230f);
 	}
 
 	private static final class Entry {
@@ -75,9 +77,10 @@ public final class ModuleListModule extends HudModule {
 
 	private void ensureEntries() {
 		List<Module> all = ModuleManager.all();
-		if (this.entries.size() == all.size()) {
+		if (this.builtFrom == all.size()) {
 			return;
 		}
+		this.builtFrom = all.size();
 		this.entries.clear();
 		this.order.clear();
 		for (Module m : all) {
@@ -123,8 +126,9 @@ public final class ModuleListModule extends HudModule {
 				break;
 			}
 		}
-		// In the editor with nothing to list, show HUD elements so the style can be previewed.
+		// In the editor with nothing to list, show a few HUD elements so the style can be previewed.
 		boolean fallback = preview && !anyListed;
+		int samples = 0;
 		for (int i = 0; i < this.entries.size(); i++) {
 			Entry e = this.entries.get(i);
 			if (e.lower != this.lowercase.on()) {
@@ -132,7 +136,10 @@ public final class ModuleListModule extends HudModule {
 				e.label = e.lower ? e.module.name().toLowerCase(Locale.ROOT) : e.module.name();
 			}
 			e.textW = font.width(e.label, size);
-			boolean show = this.listed(e.module, preview, fallback);
+			boolean show = this.listed(e.module, preview, fallback && samples < PREVIEW_SAMPLES);
+			if (show && fallback) {
+				samples++;
+			}
 			if (show && e.appear.target() < 1f) {
 				e.appear.to(1f, 0.32f, Easing.OUT_CUBIC);
 			} else if (!show && e.appear.target() > 0f) {

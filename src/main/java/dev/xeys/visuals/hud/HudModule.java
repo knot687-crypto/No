@@ -1,7 +1,9 @@
 package dev.xeys.visuals.hud;
 
+import dev.xeys.visuals.anim.Spring;
 import dev.xeys.visuals.core.module.Category;
 import dev.xeys.visuals.core.module.Module;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
 /**
@@ -14,6 +16,9 @@ public abstract class HudModule extends Module {
 	protected float width = 40f;
 	protected float height = 16f;
 	private boolean laidOut;
+	private final Spring frameX = new Spring(0f, 300f, 1f);
+	private final Spring frameY = new Spring(0f, 300f, 1f);
+	private boolean frameValid;
 
 	protected HudModule(String id, String name, char icon, String description, HudPosition.Anchor anchor, float x, float y) {
 		super(id, name, Category.HUD, icon, description);
@@ -34,6 +39,40 @@ public abstract class HudModule extends Module {
 	public final void layoutFrame(boolean preview) {
 		this.layout(preview);
 		this.laidOut = true;
+	}
+
+	/**
+	 * Where the element sits this frame (GUI px, top-left), decided by {@link HudLayout}. Elements in the
+	 * automatic layout glide to new spots; manually placed ones (and newly shown ones) move instantly.
+	 */
+	final void placeFrame(float left, float top, boolean immediate) {
+		if (immediate || !this.frameValid) {
+			this.frameX.snap(left);
+			this.frameY.snap(top);
+			this.frameValid = true;
+		} else {
+			this.frameX.target(left);
+			this.frameY.target(top);
+		}
+	}
+
+	/** Forgets the frame position so the element appears in place (no glide) next time it is shown. */
+	final void invalidateFrame() {
+		this.frameValid = false;
+	}
+
+	/** Left edge this frame, on the physical pixel grid so items and hairlines stay crisp. */
+	public final float frameLeft() {
+		return snapToPixel(this.frameX.get());
+	}
+
+	public final float frameTop() {
+		return snapToPixel(this.frameY.get());
+	}
+
+	private static float snapToPixel(float v) {
+		float scale = Minecraft.getInstance().getWindow().getGuiScale();
+		return Math.round(v * scale) / scale;
 	}
 
 	/** Whether {@link #width()} and {@link #height()} come from a real layout yet. */

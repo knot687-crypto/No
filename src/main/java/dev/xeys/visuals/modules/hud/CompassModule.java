@@ -61,13 +61,13 @@ public final class CompassModule extends HudModule {
 		HudStyle.panel(g, 0f, 0f, s, s, r);
 
 		// Tick ring every 15 degrees; cardinals carry letters instead of ticks.
-		float outer = r - 5.5f * k;
+		float outer = r - 4f * k;
 		for (int b = 15; b < 360; b += 15) {
 			if (b % 90 == 0) {
 				continue;
 			}
 			boolean inter = b % 45 == 0 && this.intercardinals.on();
-			float len = (inter ? 4.5f : 2.6f) * k;
+			float len = (inter ? 4f : 2.4f) * k;
 			float a = (b + turn) * RAD;
 			float sin = (float) Math.sin(a);
 			float cos = (float) Math.cos(a);
@@ -75,8 +75,8 @@ public final class CompassModule extends HudModule {
 				inter ? muted : faint);
 		}
 
-		float letterR = outer - 9.5f * k;
-		float letterSize = 8.5f * k;
+		float letterR = outer - 8.5f * k;
+		float letterSize = 8f * k;
 		for (int i = 0; i < 4; i++) {
 			float a = (i * 90f + turn) * RAD;
 			float lx = r + (float) Math.sin(a) * letterR;
@@ -87,8 +87,8 @@ public final class CompassModule extends HudModule {
 
 		if (dial) {
 			// Fixed lubber line at the top: what you are facing.
-			Draw.glow(g, r - 1.2f * k, 1.5f * k, 2.4f * k, 6.5f * k, 1.2f * k, 3f * k, 0f, Colors.mulAlpha(pointerColor, 0.55f));
-			Draw.line(g, r, 2.5f * k, r, 7.5f * k, 2.2f * k, pointerColor);
+			Draw.glow(g, r - 1.2f * k, 1f * k, 2.4f * k, 6f * k, 1.2f * k, 3f * k, 0f, Colors.mulAlpha(pointerColor, 0.55f));
+			Draw.line(g, r, 2f * k, r, 6.5f * k, 2.2f * k, pointerColor);
 		} else {
 			float a = bearing * RAD;
 			float sin = (float) Math.sin(a);
@@ -103,8 +103,9 @@ public final class CompassModule extends HudModule {
 			this.readout.setLength(0);
 			this.readout.append(Math.floorMod(Math.round(bearing), 360)).append('°');
 			// Optical centering: the degree sign hangs right, so nudge left by half its width.
-			float shift = HudStyle.fontStrong().width("°", 9.5f * k) * 0.5f;
-			HudStyle.label(g, HudStyle.fontStrong(), this.readout, r + shift, r, 9.5f * k, text, Text.Align.CENTER);
+			float rs = 8.5f * k;
+			float shift = HudStyle.fontStrong().width("°", rs) * 0.5f;
+			HudStyle.label(g, HudStyle.fontStrong(), this.readout, r + shift, r, rs, text, Text.Align.CENTER);
 		} else if (dial) {
 			Draw.circle(g, r, r, 1.6f * k, faint);
 		}

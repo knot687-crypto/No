@@ -47,6 +47,8 @@ public final class HudEditorScreen extends Screen {
 	private float grabY;
 	private float resizeStartScale;
 	private float resizeStartDist;
+	private float resizeOriginX;
+	private float resizeOriginY;
 	private float guideX = Float.NaN;
 	private float guideY = Float.NaN;
 	private boolean trayOpen;
@@ -81,8 +83,8 @@ public final class HudEditorScreen extends Screen {
 			}
 			float w = m.scaledWidth();
 			float h = m.scaledHeight();
-			float l = m.position.left(this.width, w);
-			float t = m.position.top(this.height, h);
+			float l = m.frameLeft();
+			float t = m.frameTop();
 			float ox = Math.min(x1, l + w) - Math.max(x0, l);
 			float oy = Math.min(y1, t + h) - Math.max(y0, t);
 			if (ox > 0f && oy > 0f) {
@@ -149,13 +151,13 @@ public final class HudEditorScreen extends Screen {
 		Draw.rect(g, sw * 0.5f - 0.25f, 0, 0.5f, sh).color(Colors.withAlpha(0xFFFFFF, 0.07f * a)).submit();
 		Draw.rect(g, 0, sh * 0.5f - 0.25f, sw, 0.5f).color(Colors.withAlpha(0xFFFFFF, 0.07f * a)).submit();
 
-		// Elements.
-		List<HudModule> mods = ModuleManager.hudModules();
+		// Elements: laid out first so hit testing uses this frame's positions.
+		List<HudModule> mods = HudLayout.compute(sw, sh, PREVIEW);
 		this.hovered = null;
 		boolean overChrome = this.overChrome(mouseX, mouseY);
 		for (int i = mods.size() - 1; i >= 0 && !overChrome; i--) {
 			HudModule m = mods.get(i);
-			if (m.isEnabled() && this.contains(m, mx, my, sw, sh)) {
+			if (this.contains(m, mx, my)) {
 				this.hovered = m;
 				break;
 			}
@@ -163,15 +165,11 @@ public final class HudEditorScreen extends Screen {
 		if (this.dragging != null) {
 			this.hovered = this.dragging;
 		}
-		float partial = delta;
-		for (HudModule m : mods) {
-			if (!m.isEnabled()) {
-				continue;
-			}
-			HudRenderer.renderModule(g, m, sw, sh, partial, PREVIEW);
-			this.drawFrame(g, m, sw, sh, a);
+		for (int i = 0; i < mods.size(); i++) {
+			HudModule m = mods.get(i);
+			HudRenderer.drawModule(g, m, delta, PREVIEW);
+			this.drawFrame(g, m, a);
 		}
-		HudPlacement.resolve(sw, sh, PREVIEW);
 
 		// Snap guides.
 		if (!Float.isNaN(this.guideX)) {
@@ -182,36 +180,38 @@ public final class HudEditorScreen extends Screen {
 		}
 
 		if (this.hovered != null) {
-			g.requestCursor(this.overHandle(this.hovered, mx, my, sw, sh) ? CursorTypes.RESIZE_ALL : CursorTypes.POINTING_HAND);
+			g.requestCursor(this.overHandle(this.hovered, mx, my) ? CursorTypes.RESIZE_ALL : CursorTypes.POINTING_HAND);
 		}
 		this.renderChrome(g, mouseX, mouseY, a);
 	}
 
-	private boolean contains(HudModule m, float mx, float my, float sw, float sh) {
-		m.layoutFrame(PREVIEW);
-		float w = m.scaledWidth();
-		float h = m.scaledHeight();
-		float x = m.position.left(sw, w);
-		float y = m.position.top(sh, h);
-		return mx >= x - 2f && mx <= x + w + 2f && my >= y - 2f && my <= y + h + 2f;
+	private boolean contains(HudModule m, float mx, float my) {
+		float x = m.frameLeft();
+		float y = m.frameTop();
+		return mx >= x - 2f && mx <= x + m.scaledWidth() + 2f && my >= y - 2f && my <= y + m.scaledHeight() + 2f;
 	}
 
-	private boolean overHandle(HudModule m, float mx, float my, float sw, float sh) {
-		float w = m.scaledWidth();
-		float h = m.scaledHeight();
-		float x = m.position.left(sw, w) + w;
-		float y = m.position.top(sh, h) + h;
+	private boolean overHandle(HudModule m, float mx, float my) {
+		float x = m.frameLeft() + m.scaledWidth();
+		float y = m.frameTop() + m.scaledHeight();
 		return Math.abs(mx - x) <= 4f && Math.abs(my - y) <= 4f;
 	}
 
-	private void drawFrame(GuiGraphics g, HudModule m, float sw, float sh, float a) {
+	/** Takes an element out of the automatic layout, pinning it where it currently is. */
+	private void pin(HudModule m) {
+		if (m.position.isDefault()) {
+			m.position.setFromTopLeft(m.frameLeft(), m.frameTop(), m.scaledWidth(), m.scaledHeight(), this.width, this.height);
+		}
+	}
+
+	private void drawFrame(GuiGraphics g, HudModule m, float a) {
 		Spring fx = this.hoverFx.computeIfAbsent(m, k -> new Spring(0f, 300f, 1f));
 		fx.target(m == this.hovered ? 1f : 0f);
 		float h = fx.get();
 		float w = m.scaledWidth();
 		float ht = m.scaledHeight();
-		float x = m.position.left(sw, w);
-		float y = m.position.top(sh, ht);
+		float x = m.frameLeft();
+		float y = m.frameTop();
 		int line = Colors.lerpOklab(Colors.withAlpha(0xFFFFFF, 0.22f), Colors.withAlpha(Theme.accent(), 0.95f), h);
 		Draw.outline(g, x - 2f, y - 2f, w + 4f, ht + 4f, 4f, 0.75f, Colors.mulAlpha(line, a));
 		if (h > 0.01f) {
@@ -381,18 +381,19 @@ public final class HudEditorScreen extends Screen {
 			return true;
 		}
 		if (button == 0) {
-			float sw = this.width;
-			float sh = this.height;
-			if (this.overHandle(target, mx, my, sw, sh)) {
+			this.pin(target);
+			float ox = target.frameLeft();
+			float oy = target.frameTop();
+			if (this.overHandle(target, mx, my)) {
 				this.resizing = target;
 				this.resizeStartScale = target.position.scale();
-				float ox = target.position.left(sw, target.scaledWidth());
-				float oy = target.position.top(sh, target.scaledHeight());
+				this.resizeOriginX = ox;
+				this.resizeOriginY = oy;
 				this.resizeStartDist = Math.max(4f, (float) Math.hypot(mx - ox, my - oy));
 			} else {
 				this.dragging = target;
-				this.grabX = mx - target.position.left(sw, target.scaledWidth());
-				this.grabY = my - target.position.top(sh, target.scaledHeight());
+				this.grabX = mx - ox;
+				this.grabY = my - oy;
 			}
 			return true;
 		}
@@ -407,8 +408,8 @@ public final class HudEditorScreen extends Screen {
 		float sh = this.height;
 		if (this.resizing != null) {
 			HudModule m = this.resizing;
-			float ox = m.position.left(sw, m.scaledWidth());
-			float oy = m.position.top(sh, m.scaledHeight());
+			float ox = this.resizeOriginX;
+			float oy = this.resizeOriginY;
 			float dist = (float) Math.hypot(mx - ox, my - oy);
 			float scale = Math.round(this.resizeStartScale * dist / this.resizeStartDist * 20f) / 20f;
 			float w0 = m.scaledWidth();
@@ -467,11 +468,11 @@ public final class HudEditorScreen extends Screen {
 			}
 		}
 		for (HudModule o : ModuleManager.hudModules()) {
-			if (o == self || !o.isEnabled()) {
+			if (o == self || !o.isEnabled() || !o.laidOut()) {
 				continue;
 			}
 			float ow = xAxis ? o.scaledWidth() : o.scaledHeight();
-			float op = xAxis ? o.position.left(this.width, o.scaledWidth()) : o.position.top(this.height, o.scaledHeight());
+			float op = xAxis ? o.frameLeft() : o.frameTop();
 			float[] edges = {op, op + ow, op + ow * 0.5f};
 			for (float e : edges) {
 				float[][] options = {{e, e}, {e - size, e}, {e - size * 0.5f, e}};
@@ -501,11 +502,12 @@ public final class HudEditorScreen extends Screen {
 	@Override
 	public boolean mouseScrolled(double x, double y, double horizontal, double vertical) {
 		if (this.hovered != null && !this.overChrome(x, y)) {
+			this.pin(this.hovered);
 			HudPosition p = this.hovered.position;
 			float sw = this.width;
 			float sh = this.height;
-			float left = p.left(sw, this.hovered.scaledWidth());
-			float top = p.top(sh, this.hovered.scaledHeight());
+			float left = this.hovered.frameLeft();
+			float top = this.hovered.frameTop();
 			p.setScale(Math.round((p.scale() + (vertical > 0 ? 0.05f : -0.05f)) * 20f) / 20f);
 			p.setFromTopLeft(left, top, this.hovered.scaledWidth(), this.hovered.scaledHeight(), sw, sh);
 			return true;

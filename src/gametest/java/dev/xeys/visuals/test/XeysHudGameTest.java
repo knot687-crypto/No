@@ -41,6 +41,9 @@ public final class XeysHudGameTest implements FabricClientGameTest {
 			server.runCommand("give @a minecraft:ender_pearl 6");
 			server.runCommand("give @a minecraft:bow[damage=120]");
 			server.runCommand("give @a minecraft:arrow 64");
+			server.runCommand("give @a minecraft:stone 640");
+			server.runCommand("give @a minecraft:redstone 37");
+			server.runCommand("give @a minecraft:iron_pickaxe[damage=100]");
 			server.runCommand("effect give @a minecraft:speed 300 1");
 			server.runCommand("effect give @a minecraft:strength 90 0");
 			server.runCommand("effect give @a minecraft:night_vision infinite 0");
@@ -48,17 +51,22 @@ public final class XeysHudGameTest implements FabricClientGameTest {
 			context.waitTicks(30);
 			shot(context, "hud_default");
 
-			enable(context, "cps", "ping", "speed", "direction", "biome", "light_level", "clock", "memory", "session_time", "day_counter",
-				"server_info", "weather", "compass", "moon_phase", "heading_bar", "keystrokes", "held_item", "inventory_hud", "pack_display",
-				"module_list");
+			enable(context, "cps", "ping", "speed", "direction", "biome", "light_level", "clock", "memory", "session_time", "server_info",
+				"day_counter", "weather");
 			context.waitTicks(20);
-			shot(context, "hud_all");
+			shot(context, "hud_info");
 
-			// Target HUD: a husk (no daylight burning) just in front, then a hit.
-			disable(context, "inventory_hud", "keystrokes");
+			disable(context, "cps", "ping", "speed", "direction", "biome", "light_level", "clock", "memory", "session_time", "server_info",
+				"day_counter", "weather");
+			enable(context, "compass", "moon_phase", "heading_bar", "keystrokes", "held_item", "inventory_hud", "module_list", "pack_display");
+			context.waitTicks(20);
+			shot(context, "hud_widgets");
+
+			// Target HUD: a husk (no daylight burning) just in front, looked at squarely, then a hit.
+			disable(context, "inventory_hud", "keystrokes", "held_item");
 			enable(context, "target_hud");
-			server.runCommand("execute as @p at @s run summon minecraft:husk ~ ~ ~2.4 {NoAI:1b,PersistenceRequired:1b,Silent:1b,IsBaby:0b}");
-			server.runCommand("execute as @p at @s run tp @s ~ ~ ~ facing entity @e[type=minecraft:husk,limit=1,sort=nearest] eyes");
+			server.runCommand("execute as @p at @s run summon minecraft:husk ~ ~ ~2.6 {NoAI:1b,PersistenceRequired:1b,Silent:1b,IsBaby:0b}");
+			server.runCommand("execute as @p at @s run tp @s ~ ~ ~ 0 6");
 			context.waitTicks(15);
 			shot(context, "hud_target");
 			server.runCommand("damage @e[type=minecraft:husk,limit=1] 6");
@@ -80,8 +88,52 @@ public final class XeysHudGameTest implements FabricClientGameTest {
 		context.setScreen(() -> new HudEditorScreen(new TitleScreen()));
 		context.waitTicks(20);
 		context.takeScreenshot("hud_editor_menu");
+
+		// Style variants of the batch, previewed in the editor.
+		context.runOnClient(c -> {
+			set("watermark", "style", "BAR");
+			set("compass", "style", "NEEDLE");
+			set("armor_hud", "layout", "HORIZONTAL");
+			set("potion_hud", "layout", "COMPACT");
+			set("fps", "graph", true);
+			set("fps", "frame_time", true);
+			set("coordinates", "layout", "SINGLE_LINE");
+			set("target_hud", "portrait", "FACE");
+			set("module_list", "bar", "INNER");
+			for (String id : new String[] {"keystrokes", "inventory_hud", "held_item", "heading_bar", "clock", "weather"}) {
+				ModuleManager.get(id).setEnabled(true);
+			}
+		});
+		context.waitTicks(20);
+		context.takeScreenshot("hud_editor_variants");
+		context.runOnClient(c -> {
+			for (dev.xeys.visuals.core.module.Module m : ModuleManager.all()) {
+				for (dev.xeys.visuals.core.setting.Setting<?> st : m.settings()) {
+					st.reset();
+				}
+			}
+		});
 		context.setScreen(TitleScreen::new);
 		context.waitTicks(2);
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private static void set(String module, String key, Object value) {
+		for (dev.xeys.visuals.core.setting.Setting<?> st : ModuleManager.get(module).settings()) {
+			if (st.key().equals(key)) {
+				if (st instanceof dev.xeys.visuals.core.setting.EnumSetting e) {
+					for (Object o : e.options()) {
+						if (((Enum<?>) o).name().equals(value)) {
+							((dev.xeys.visuals.core.setting.Setting) st).set(o);
+						}
+					}
+				} else {
+					((dev.xeys.visuals.core.setting.Setting) st).set(value);
+				}
+				return;
+			}
+		}
+		throw new IllegalArgumentException("No setting " + module + "." + key);
 	}
 
 	private static void shot(ClientGameTestContext context, String name) {

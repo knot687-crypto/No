@@ -37,33 +37,40 @@ final class ModuleCatalog {
 		hudBatch1();
 	}
 
-	/** HUD batch 1: readouts, compass, armor, effects, keystrokes, target and info elements. */
+	/**
+	 * HUD batch 1. Within each screen corner, untouched elements stack in this order (see HudLayout), so
+	 * the order here is also the default layout: left edge, right edge, bottom right, then the center.
+	 */
 	private static void hudBatch1() {
+		// Left edge, top down.
 		ModuleManager.register(new WatermarkModule());
-		ModuleManager.register(new ModuleListModule());
 		ModuleManager.register(new FpsModule());
 		ModuleManager.register(new CpsModule());
 		ModuleManager.register(new PingModule());
 		ModuleManager.register(new CoordinatesModule());
-		ModuleManager.register(new DirectionModule());
-		ModuleManager.register(new CompassModule());
-		ModuleManager.register(new HeadingBarModule());
 		ModuleManager.register(new SpeedModule());
-		ModuleManager.register(new ClockModule());
-		ModuleManager.register(new SessionTimeModule());
-		ModuleManager.register(new MemoryModule());
-		ModuleManager.register(new ServerInfoModule());
+		ModuleManager.register(new DirectionModule());
 		ModuleManager.register(new BiomeModule());
-		ModuleManager.register(new DayCounterModule());
-		ModuleManager.register(new MoonPhaseModule());
-		ModuleManager.register(new WeatherModule());
 		ModuleManager.register(new LightLevelModule());
-		ModuleManager.register(new ArmorHudModule());
-		ModuleManager.register(new PotionHudModule());
-		ModuleManager.register(new HeldItemModule());
-		ModuleManager.register(new InventoryHudModule());
 		ModuleManager.register(new KeystrokesModule());
-		ModuleManager.register(new TargetHudModule());
+		// Right edge, top down.
+		ModuleManager.register(new PotionHudModule());
+		ModuleManager.register(new ClockModule());
+		ModuleManager.register(new MemoryModule());
+		ModuleManager.register(new SessionTimeModule());
+		ModuleManager.register(new ServerInfoModule());
+		ModuleManager.register(new DayCounterModule());
+		ModuleManager.register(new WeatherModule());
+		ModuleManager.register(new MoonPhaseModule());
+		ModuleManager.register(new CompassModule());
+		ModuleManager.register(new ModuleListModule());
+		// Bottom right, bottom up.
+		ModuleManager.register(new ArmorHudModule());
+		ModuleManager.register(new InventoryHudModule());
 		ModuleManager.register(new PackDisplayModule());
+		// Center column.
+		ModuleManager.register(new HeadingBarModule());
+		ModuleManager.register(new TargetHudModule());
+		ModuleManager.register(new HeldItemModule());
 	}
 }

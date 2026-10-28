@@ -36,7 +36,7 @@ public final class InventoryHudModule extends HudModule {
 	private final BoolSetting bars = this.add(new BoolSetting("bars", "Durability Bars", true).group("Display"));
 
 	public InventoryHudModule() {
-		super("inventory_hud", "Inventory HUD", Icons.BACKPACK, "Your inventory in a glass grid", HudPosition.Anchor.BOTTOM_LEFT, 6f, -102f);
+		super("inventory_hud", "Inventory HUD", Icons.BACKPACK, "Your inventory in a glass grid", HudPosition.Anchor.BOTTOM_RIGHT, -6f, -102f);
 	}
 
 	private static ItemStack[] sample() {
