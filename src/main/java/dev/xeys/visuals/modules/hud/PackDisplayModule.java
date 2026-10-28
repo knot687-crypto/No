@@ -16,6 +16,7 @@ import dev.xeys.visuals.ui.Icons;
 import dev.xeys.visuals.util.Colors;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -33,9 +34,9 @@ public final class PackDisplayModule extends HudModule {
 	private final BoolSetting descriptions = this.add(new BoolSetting("descriptions", "Descriptions", false).group("Display"));
 
 	private final List<Entry> entries = new ArrayList<>();
-	private String signature = "";
-	private long checkedAt;
+	private Collection<Pack> lastSelection;
 	private boolean lastPreview;
+	private int lastMax;
 
 	public PackDisplayModule() {
 		super("pack_display", "Pack Display", Icons.LAYERS, "Your active resource packs with their icons", HudPosition.Anchor.BOTTOM_RIGHT, -6f,
@@ -67,7 +68,7 @@ public final class PackDisplayModule extends HudModule {
 	@Override
 	protected void onDisable() {
 		this.clear();
-		this.signature = "";
+		this.lastSelection = null;
 	}
 
 	private void clear() {
@@ -79,38 +80,34 @@ public final class PackDisplayModule extends HudModule {
 		this.entries.clear();
 	}
 
-	/** Rebuilds the list when the selection changes; checked twice a second. */
+	/**
+	 * Rebuilds the list when the selection changes. Vanilla replaces its selected-pack list whenever the
+	 * selection changes, so comparing the list reference is enough and costs nothing per frame.
+	 */
 	private void refresh(boolean preview) {
-		long now = System.nanoTime();
-		if (now - this.checkedAt < 500_000_000L && !this.signature.isEmpty() && preview == this.lastPreview) {
+		Collection<Pack> selected = Minecraft.getInstance().getResourcePackRepository().getSelectedPacks();
+		int max = this.maxPacks.intValue();
+		if (selected == this.lastSelection && preview == this.lastPreview && max == this.lastMax) {
 			return;
 		}
-		this.checkedAt = now;
+		this.lastSelection = selected;
 		this.lastPreview = preview;
+		this.lastMax = max;
+		List<Pack> ordered = new ArrayList<>(selected);
 		List<Pack> picked = new ArrayList<>();
-		List<Pack> selected = new ArrayList<>(Minecraft.getInstance().getResourcePackRepository().getSelectedPacks());
-		for (int i = selected.size() - 1; i >= 0 && picked.size() < this.maxPacks.intValue(); i--) {
-			Pack p = selected.get(i);
+		for (int i = ordered.size() - 1; i >= 0 && picked.size() < max; i--) {
+			Pack p = ordered.get(i);
 			if (!p.isRequired()) {
 				picked.add(p);
 			}
 		}
 		if (picked.isEmpty() && preview) {
-			for (Pack p : selected) {
+			for (Pack p : ordered) {
 				if ("vanilla".equals(p.getId())) {
 					picked.add(p);
 				}
 			}
 		}
-		StringBuilder sig = new StringBuilder("v");
-		for (Pack p : picked) {
-			sig.append('|').append(p.getId());
-		}
-		String s = sig.toString();
-		if (s.equals(this.signature)) {
-			return;
-		}
-		this.signature = s;
 		this.clear();
 		for (Pack p : picked) {
 			Entry e = new Entry();

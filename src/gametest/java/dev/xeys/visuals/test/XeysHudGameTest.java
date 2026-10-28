@@ -62,6 +62,22 @@ public final class XeysHudGameTest implements FabricClientGameTest {
 			context.waitTicks(20);
 			shot(context, "hud_widgets");
 
+			// Other GUI scales and resolutions, then F1 (hide GUI).
+			context.getInput().resizeWindow(1920, 1080);
+			setGuiScale(context, 3);
+			context.waitTicks(10);
+			shot(context, "hud_1080p_gui3");
+			setGuiScale(context, 4);
+			context.waitTicks(10);
+			shot(context, "hud_1080p_gui4");
+			context.getInput().resizeWindow(1280, 720);
+			setGuiScale(context, 2);
+			context.runOnClient(c -> c.options.hideGui = true);
+			context.waitTicks(4);
+			shot(context, "hud_hidden_f1");
+			context.runOnClient(c -> c.options.hideGui = false);
+			context.waitTicks(2);
+
 			// Target HUD: a husk (no daylight burning) just in front, looked at squarely, then a hit.
 			disable(context, "inventory_hud", "keystrokes", "held_item");
 			enable(context, "target_hud");
@@ -134,6 +150,13 @@ public final class XeysHudGameTest implements FabricClientGameTest {
 			}
 		}
 		throw new IllegalArgumentException("No setting " + module + "." + key);
+	}
+
+	private static void setGuiScale(ClientGameTestContext context, int scale) {
+		context.runOnClient(c -> {
+			c.options.guiScale().set(scale);
+			c.resizeDisplay();
+		});
 	}
 
 	private static void shot(ClientGameTestContext context, String name) {
