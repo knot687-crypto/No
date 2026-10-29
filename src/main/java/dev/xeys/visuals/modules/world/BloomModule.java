@@ -10,8 +10,8 @@ import dev.xeys.visuals.ui.Icons;
 
 /** A soft glow around bright parts of the world: torches, lava, the sun, lit windows. */
 public final class BloomModule extends Module implements WorldEvents.WorldPostEffect {
-	private final NumberSetting strength = this.add(new NumberSetting("strength", "Strength", 100f, 5f, 250f, 5f).unit("%").group("Bloom"));
-	private final NumberSetting threshold = this.add(new NumberSetting("threshold", "Threshold", 68f, 30f, 95f, 1f).unit("%")
+	private final NumberSetting strength = this.add(new NumberSetting("strength", "Strength", 70f, 5f, 200f, 5f).unit("%").group("Bloom"));
+	private final NumberSetting threshold = this.add(new NumberSetting("threshold", "Threshold", 72f, 30f, 95f, 1f).unit("%")
 		.describe("How bright something must be to glow").group("Bloom"));
 	private final NumberSetting radius = this.add(new NumberSetting("radius", "Radius", 5f, 3f, 6f, 1f).describe("How far the glow spreads")
 		.group("Bloom"));

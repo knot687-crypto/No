@@ -42,7 +42,7 @@ public final class WorldFx {
 		this.aperture = 6f;
 		this.dofLevels = 3;
 		this.bloom = 0f;
-		this.bloomThreshold = 0.68f;
+		this.bloomThreshold = 0.72f;
 		this.bloomLevels = 5;
 		this.bloomTint = 0xFFFFFFFF;
 	}

@@ -8,359 +8,452 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import net.minecraft.client.CloudStatus;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * World modules: block outline and overlay, break progress, glint, dropped items and loot beams, hits,
- * depth of field, time, weather, sky and night-sky layers, fog, clouds, grading, bloom, motion blur and
- * ambient particles.
+ * World modules, in sections (select some with -Dxeys.sections=...): blocks, breaking, glint, items,
+ * hits, dof, sky, nightsky, celestial, weather, atmosphere, grading, motion, ground, motes.
  */
 public final class XeysWorldGameTest implements FabricClientGameTest {
+	private ClientGameTestContext context;
+	private TestServerContext server;
+	private int bx;
+	private int by;
+	private int bz;
+
 	@Override
-	public void runTest(ClientGameTestContext context) {
+	public void runTest(ClientGameTestContext ctx) {
 		if (!TestFilter.enabled("world")) {
 			return;
 		}
-		context.getInput().resizeWindow(1280, 720);
-		context.runOnClient(c -> {
+		this.context = ctx;
+		ctx.getInput().resizeWindow(1280, 720);
+		ctx.runOnClient(c -> {
 			c.options.guiScale().set(2);
 			c.resizeDisplay();
 		});
-		context.waitTicks(2);
-		try (TestSingleplayerContext world = context.worldBuilder().create()) {
-			TestServerContext server = world.getServer();
+		ctx.waitTicks(2);
+		try (TestSingleplayerContext world = ctx.worldBuilder().create()) {
+			this.server = world.getServer();
 			world.getClientWorld().waitForChunksRender();
-			BlockPos base = context.computeOnClient(c -> c.player.blockPosition());
-			int bx = base.getX();
-			int by = base.getY();
-			int bz = base.getZ();
-			server.runCommand("gamemode creative @a");
-			server.runCommand("difficulty easy");
-			server.runCommand("time set 5000");
-			server.runCommand("weather clear");
-			server.runCommand("execute as @p at @s run place structure minecraft:village_plains ~ ~ ~28");
-			server.runCommand("execute as @p at @s run place feature minecraft:oak ~-6 ~ ~10");
-			server.runCommand("execute as @p at @s run place feature minecraft:birch ~7 ~ ~13");
-			server.runCommand(String.format(Locale.ROOT, "setblock %d %d %d minecraft:polished_andesite", bx + 1, by, bz + 2));
-			server.runCommand(String.format(Locale.ROOT, "setblock %d %d %d minecraft:oak_stairs", bx - 1, by, bz + 2));
-			context.waitTicks(40);
+			BlockPos base = ctx.computeOnClient(c -> c.player.blockPosition());
+			this.bx = base.getX();
+			this.by = base.getY();
+			this.bz = base.getZ();
+			this.command("gamemode creative @a");
+			this.command("difficulty easy");
+			this.command("time set 5000");
+			this.command("weather clear");
+			this.command("execute as @p at @s run place structure minecraft:village_plains ~ ~ ~28");
+			this.command("execute as @p at @s run place feature minecraft:oak ~-6 ~ ~10");
+			this.command("execute as @p at @s run place feature minecraft:birch ~7 ~ ~13");
+			this.command("setblock %d %d %d minecraft:polished_andesite", this.bx + 1, this.by, this.bz + 2);
+			this.command("setblock %d %d %d minecraft:oak_stairs", this.bx - 1, this.by, this.bz + 2);
+			ctx.waitTicks(40);
 			world.getClientWorld().waitForChunksRender();
 
-			// Block outline and overlay on a full block, then on stairs.
-			look(context, 1, 0, 2);
-			context.waitTicks(4);
-			shot(context, "wd_outline_none");
-			enable(context, "block_outline", true);
-			context.waitTicks(4);
-			shot(context, "wd_outline");
-			set(context, "block_outline", "style", "\"corners\"");
-			context.waitTicks(2);
-			shot(context, "wd_outline_corners");
-			set(context, "block_outline", "style", "\"full\"");
-			enable(context, "block_overlay", true);
-			context.waitTicks(4);
-			shot(context, "wd_overlay");
-			look(context, -1, 0, 2);
-			context.waitTicks(1);
-			shot(context, "wd_outline_glide");
-			context.waitTicks(10);
-			shot(context, "wd_outline_stairs");
-			set(context, "block_overlay", "face_only", "true");
-			context.waitTicks(2);
-			shot(context, "wd_overlay_face");
-			enable(context, "block_overlay", false);
-			enable(context, "block_outline", false);
-
-			// Break progress while mining the andesite with a wooden pickaxe.
-			enable(context, "break_progress", true);
-			server.runCommand("gamemode survival @a");
-			server.runCommand("item replace entity @p weapon.mainhand with minecraft:wooden_pickaxe");
-			look(context, 1, 0, 2);
-			context.waitTicks(4);
-			context.getInput().holdMouse(0);
-			context.waitTicks(9);
-			shot(context, "wd_break_progress");
-			context.getInput().releaseMouse(0);
-			set(context, "break_progress", "style", "\"fill\"");
-			server.runCommand(String.format(Locale.ROOT, "setblock %d %d %d minecraft:polished_andesite", bx + 1, by, bz + 2));
-			context.waitTicks(10);
-			context.getInput().holdMouse(0);
-			context.waitTicks(12);
-			shot(context, "wd_break_fill");
-			context.getInput().releaseMouse(0);
-			enable(context, "break_progress", false);
-			server.runCommand(String.format(Locale.ROOT, "setblock %d %d %d minecraft:polished_andesite", bx + 1, by, bz + 2));
-			server.runCommand("gamemode creative @a");
-
-			// Enchantment glint, vanilla then recolored, on the held sword.
-			server.runCommand("item replace entity @p weapon.mainhand with minecraft:diamond_sword[enchantments={sharpness:5}]");
-			context.runOnClient(c -> {
-				c.player.setXRot(20f);
-				c.player.xRotO = 20f;
-			});
-			context.waitTicks(6);
-			shot(context, "wd_glint_vanilla");
-			enable(context, "enchant_glint", true);
-			context.waitTicks(4);
-			shot(context, "wd_glint");
-			set(context, "enchant_glint", "color", "{\"color\":\"#FF5A5A\",\"mode\":\"static\"}");
-			set(context, "enchant_glint", "speed", "300");
-			context.waitTicks(4);
-			shot(context, "wd_glint_red");
-			enable(context, "enchant_glint", false);
-			context.waitTicks(2);
-			shot(context, "wd_glint_restored");
-			server.runCommand("item replace entity @p weapon.mainhand with minecraft:air");
-
-			// Dropped items behind the player: vanilla, flat and bigger, then with loot beams.
-			String item = "summon minecraft:item %.1f %d %.1f {Item:{id:\"minecraft:%s\",count:1},PickupDelay:32767s,Age:-32768s}";
-			server.runCommand(String.format(Locale.ROOT, item, bx - 0.4, by, bz - 1.7, "diamond_sword"));
-			server.runCommand(String.format(Locale.ROOT, item, bx + 0.8, by, bz - 2.2, "golden_apple"));
-			server.runCommand(String.format(Locale.ROOT, item, bx + 1.7, by, bz - 1.5, "grass_block"));
-			server.runCommand(String.format(Locale.ROOT, item, bx + 0.5, by, bz - 1.2, "ender_pearl"));
-			server.runCommand(String.format(Locale.ROOT, item, bx - 1.2, by, bz - 2.6, "enchanted_golden_apple"));
-			server.runCommand(String.format(Locale.ROOT, item, bx + 2.4, by, bz - 3.0, "totem_of_undying"));
-			context.runOnClient(c -> {
-				c.player.setYRot(180f);
-				c.player.setXRot(40f);
-				c.player.yRotO = 180f;
-				c.player.xRotO = 40f;
-			});
-			context.waitTicks(30);
-			shot(context, "wd_items");
-			enable(context, "item_physics", true);
-			context.waitTicks(3);
-			shot(context, "wd_items_physics");
-			enable(context, "dropped_item_style", true);
-			set(context, "dropped_item_style", "scale", "160");
-			context.waitTicks(3);
-			shot(context, "wd_items_styled");
-			enable(context, "item_physics", false);
-			enable(context, "dropped_item_style", false);
-			enable(context, "loot_beams", true);
-			set(context, "loot_beams", "min_rarity", "\"all\"");
-			context.runOnClient(c -> {
-				c.player.setXRot(12f);
-				c.player.xRotO = 12f;
-			});
-			context.waitTicks(4);
-			shot(context, "wd_loot_beams");
-			enable(context, "loot_beams", false);
-			server.runCommand("kill @e[type=minecraft:item]");
-
-			// Hits on a husk: hurt tint and particles.
-			enable(context, "hit_color", true);
-			enable(context, "hit_particles", true);
-			server.runCommand("gamemode survival @a");
-			server.runCommand(String.format(Locale.ROOT,
-				"summon minecraft:husk %.1f %d %.1f {NoAI:1b,Silent:1b,PersistenceRequired:1b,IsBaby:0b}", bx + 0.5, by, bz + 2.9));
-			context.runOnClient(c -> {
-				c.player.setYRot(0f);
-				c.player.setXRot(10f);
-				c.player.yRotO = 0f;
-				c.player.xRotO = 10f;
-			});
-			context.waitTicks(10);
-			context.getInput().pressMouse(0);
-			context.waitTicks(2);
-			shot(context, "wd_hit");
-			set(context, "hit_particles", "style", "\"magic\"");
-			context.waitTicks(14);
-			context.getInput().pressMouse(0);
-			context.waitTicks(2);
-			shot(context, "wd_hit_magic");
-			enable(context, "hit_color", false);
-			enable(context, "hit_particles", false);
-			server.runCommand("tp @e[type=minecraft:husk] ~ -200 ~");
-			server.runCommand("gamemode creative @a");
-
-			// Depth of field: focus on the near block, the village behind softens.
-			look(context, 1, 0, 2);
-			context.waitTicks(6);
-			shot(context, "wd_dof_off");
-			enable(context, "depth_of_field", true);
-			context.waitTicks(30);
-			shot(context, "wd_dof_near");
-			context.runOnClient(c -> {
-				c.player.setYRot(0f);
-				c.player.setXRot(-2f);
-				c.player.yRotO = 0f;
-				c.player.xRotO = -2f;
-			});
-			context.waitTicks(30);
-			shot(context, "wd_dof_far");
-			enable(context, "depth_of_field", false);
-
-			// Fly up and look out over the village for the sky and atmosphere.
-			tp(server, bx, by + 36, bz - 14, 0f, 14f);
-			context.waitTicks(3);
-			context.runOnClient(c -> {
-				c.player.getAbilities().flying = true;
-				c.player.onUpdateAbilities();
-			});
-			face(context, 0f, 14f);
-			context.waitTicks(30);
-			world.getClientWorld().waitForChunksRender();
-			shot(context, "wd_day");
-			enable(context, "bloom", true);
-			context.waitTicks(3);
-			shot(context, "wd_bloom_day");
-			enable(context, "bloom", false);
-			enable(context, "time_changer", true);
-			set(context, "time_changer", "hour", "18.6");
-			context.waitTicks(4);
-			shot(context, "wd_sunset");
-			enable(context, "sky_tint", true);
-			context.waitTicks(4);
-			shot(context, "wd_sunset_tint");
-			set(context, "time_changer", "hour", "23");
-			context.waitTicks(4);
-			shot(context, "wd_night_tint");
-			enable(context, "sky_tint", false);
-			context.waitTicks(2);
-			shot(context, "wd_night");
-
-			// Night sky layers, looking north and up.
-			face(context, 180f, -24f);
-			context.waitTicks(4);
-			shot(context, "wd_sky_vanilla");
-			enable(context, "starfield", true);
-			context.waitTicks(4);
-			shot(context, "wd_starfield");
-			enable(context, "aurora", true);
-			context.waitTicks(10);
-			shot(context, "wd_aurora");
-			enable(context, "shooting_stars", true);
-			set(context, "shooting_stars", "rate", "60");
-			for (int i = 0; i < 6; i++) {
-				context.waitTicks(12);
-				shot(context, "wd_meteors_" + i);
+			if (TestFilter.section("blocks")) {
+				this.blocks();
 			}
-			enable(context, "shooting_stars", false);
-			enable(context, "aurora", false);
-			enable(context, "starfield", false);
-
-			// The moon, bigger and full, rising in the east.
-			set(context, "time_changer", "hour", "19.6");
-			face(context, -90f, -12f);
-			context.waitTicks(4);
-			shot(context, "wd_moon_vanilla");
-			enable(context, "celestial", true);
-			set(context, "celestial", "moon_size", "260");
-			set(context, "celestial", "phase", "\"full\"");
-			context.waitTicks(4);
-			shot(context, "wd_moon_big");
-			// And the sun, bigger, low in the east in the morning.
-			set(context, "time_changer", "hour", "6.9");
-			set(context, "celestial", "sun_size", "220");
-			context.waitTicks(4);
-			shot(context, "wd_sun_big");
-			enable(context, "celestial", false);
-			enable(context, "time_changer", false);
-			face(context, 0f, 14f);
-			context.waitTicks(2);
-
-			// Weather: eases in over a couple of seconds.
-			enable(context, "weather_changer", true);
-			set(context, "weather_changer", "weather", "\"rain\"");
-			context.waitTicks(80);
-			shot(context, "wd_rain");
-			set(context, "weather_changer", "weather", "\"thunderstorm\"");
-			context.waitTicks(80);
-			shot(context, "wd_thunder");
-			set(context, "weather_changer", "weather", "\"snow\"");
-			context.waitTicks(60);
-			shot(context, "wd_snow");
-			set(context, "weather_changer", "weather", "\"clear\"");
-			context.waitTicks(100);
-			enable(context, "weather_changer", false);
-
-			enable(context, "atmospheric_fog", true);
-			context.waitTicks(4);
-			shot(context, "wd_fog");
-			enable(context, "atmospheric_fog", false);
-
-			// Clouds from below (the test harness turns them off for stable screenshots).
-			context.runOnClient(c -> c.options.cloudStatus().set(net.minecraft.client.CloudStatus.FANCY));
-			face(context, 0f, -32f);
-			context.waitTicks(4);
-			shot(context, "wd_clouds_none");
-			enable(context, "cloud_style", true);
-			set(context, "cloud_style", "color", "{\"color\":\"#FF9AA8\",\"mode\":\"static\"}");
-			set(context, "cloud_style", "opacity", "70");
-			set(context, "cloud_style", "height", "-48");
-			context.waitTicks(4);
-			shot(context, "wd_clouds");
-			enable(context, "cloud_style", false);
-			face(context, 0f, 14f);
-
-			for (String look : new String[] {"cinematic", "vibrant", "moody", "warm", "cool", "pastel"}) {
-				enable(context, "color_grading", true);
-				set(context, "color_grading", "look", "\"" + look + "\"");
-				context.waitTicks(3);
-				shot(context, "wd_grade_" + look);
+			if (TestFilter.section("breaking")) {
+				this.breaking();
 			}
-			enable(context, "color_grading", false);
-
-			// Motion blur while turning.
-			enable(context, "motion_blur", true);
-			set(context, "motion_blur", "strength", "100");
-			for (int i = 0; i < 8; i++) {
-				context.runOnClient(c -> c.player.setYRot(c.player.getYRot() + 7f));
-				context.waitTicks(1);
+			if (TestFilter.section("glint")) {
+				this.glint();
 			}
-			context.runOnClient(c -> c.player.setYRot(c.player.getYRot() + 7f));
-			context.takeScreenshot("wd_motion_blur");
-			context.waitTicks(4);
-			shot(context, "wd_motion_still");
-			enable(context, "motion_blur", false);
-
-			// Back on the ground at night: fireflies, then bloom on lanterns.
-			tp(server, bx, by, bz, 0f, 6f);
-			context.runOnClient(c -> c.player.getAbilities().flying = false);
-			server.runCommand(String.format(Locale.ROOT, "setblock %d %d %d minecraft:lantern", bx - 2, by, bz + 4));
-			server.runCommand(String.format(Locale.ROOT, "setblock %d %d %d minecraft:sea_lantern", bx + 2, by, bz + 5));
-			enable(context, "time_changer", true);
-			set(context, "time_changer", "hour", "22");
-			face(context, 0f, 6f);
-			context.waitTicks(20);
-			shot(context, "wd_ground_night");
-			enable(context, "fireflies", true);
-			set(context, "fireflies", "density", "120");
-			context.waitTicks(80);
-			shot(context, "wd_fireflies");
-			enable(context, "fireflies", false);
-			enable(context, "bloom", true);
-			context.waitTicks(3);
-			shot(context, "wd_bloom_night");
-			enable(context, "bloom", false);
-			enable(context, "time_changer", false);
-
-			// Daytime dust motes and falling leaves under the trees.
-			enable(context, "dust_motes", true);
-			set(context, "dust_motes", "size", "300");
-			set(context, "dust_motes", "density", "300");
-			enable(context, "falling_leaves", true);
-			set(context, "falling_leaves", "amount", "2000");
-			face(context, 30f, 4f);
-			context.waitTicks(60);
-			shot(context, "wd_motes_leaves");
-			enable(context, "dust_motes", false);
-			enable(context, "falling_leaves", false);
+			if (TestFilter.section("items")) {
+				this.items();
+			}
+			if (TestFilter.section("hits")) {
+				this.hits();
+			}
+			if (TestFilter.section("dof")) {
+				this.depthOfField();
+			}
+			if (TestFilter.section("sky")) {
+				this.sky();
+			}
+			if (TestFilter.section("nightsky")) {
+				this.nightSky();
+			}
+			if (TestFilter.section("celestial")) {
+				this.celestial();
+			}
+			if (TestFilter.section("weather")) {
+				this.weather();
+			}
+			if (TestFilter.section("atmosphere")) {
+				this.atmosphere();
+			}
+			if (TestFilter.section("grading")) {
+				this.grading();
+			}
+			if (TestFilter.section("motion")) {
+				this.motion();
+			}
+			if (TestFilter.section("ground")) {
+				this.groundNight();
+			}
+			if (TestFilter.section("motes")) {
+				this.motes();
+			}
 		}
-		context.setScreen(TitleScreen::new);
-		context.waitTicks(2);
+		ctx.setScreen(TitleScreen::new);
+		ctx.waitTicks(2);
 	}
 
-	private static void tp(TestServerContext server, int x, int y, int z, float yaw, float pitch) {
-		server.runCommand(String.format(Locale.ROOT, "tp @p %.1f %d %.1f %.1f %.1f", x + 0.5, y, z + 0.5, yaw, pitch));
+	/** Block outline and overlay on a full block, then on stairs. */
+	private void blocks() {
+		this.onGround(0f, 0f);
+		this.look(1, 0, 2);
+		this.context.waitTicks(4);
+		this.shot("wd_outline_none");
+		this.enable("block_outline", true);
+		this.context.waitTicks(4);
+		this.shot("wd_outline");
+		this.set("block_outline", "style", "\"corners\"");
+		this.context.waitTicks(2);
+		this.shot("wd_outline_corners");
+		this.set("block_outline", "style", "\"full\"");
+		this.enable("block_overlay", true);
+		this.context.waitTicks(4);
+		this.shot("wd_overlay");
+		this.look(-1, 0, 2);
+		this.context.waitTicks(1);
+		this.shot("wd_outline_glide");
+		this.context.waitTicks(10);
+		this.shot("wd_outline_stairs");
+		this.set("block_overlay", "face_only", "true");
+		this.context.waitTicks(2);
+		this.shot("wd_overlay_face");
+		this.enable("block_overlay", false);
+		this.enable("block_outline", false);
 	}
 
-	private static void face(ClientGameTestContext context, float yaw, float pitch) {
-		context.runOnClient(c -> {
+	/** Break progress while mining the andesite with a wooden pickaxe, growing then filling. */
+	private void breaking() {
+		this.onGround(0f, 0f);
+		this.enable("break_progress", true);
+		this.command("gamemode survival @a");
+		this.command("item replace entity @p weapon.mainhand with minecraft:wooden_pickaxe");
+		this.look(1, 0, 2);
+		this.context.waitTicks(4);
+		this.context.getInput().holdMouse(0);
+		this.context.waitTicks(9);
+		this.shot("wd_break_progress");
+		this.context.getInput().releaseMouse(0);
+		this.set("break_progress", "style", "\"fill\"");
+		this.command("setblock %d %d %d minecraft:polished_andesite", this.bx + 1, this.by, this.bz + 2);
+		this.context.waitTicks(10);
+		this.context.getInput().holdMouse(0);
+		this.context.waitTicks(12);
+		this.shot("wd_break_fill");
+		this.context.getInput().releaseMouse(0);
+		this.enable("break_progress", false);
+		this.command("setblock %d %d %d minecraft:polished_andesite", this.bx + 1, this.by, this.bz + 2);
+		this.command("item replace entity @p weapon.mainhand with minecraft:air");
+		this.command("gamemode creative @a");
+	}
+
+	/** Enchantment glint on the held sword: vanilla, recolored, red and fast, then restored. */
+	private void glint() {
+		this.onGround(0f, 20f);
+		this.command("item replace entity @p weapon.mainhand with minecraft:diamond_sword[enchantments={sharpness:5}]");
+		this.context.waitTicks(10);
+		this.shot("wd_glint_vanilla");
+		this.enable("enchant_glint", true);
+		this.context.waitTicks(4);
+		this.shot("wd_glint");
+		this.set("enchant_glint", "color", "{\"color\":\"#FF5A5A\",\"mode\":\"static\"}");
+		this.set("enchant_glint", "speed", "300");
+		this.context.waitTicks(4);
+		this.shot("wd_glint_red");
+		this.enable("enchant_glint", false);
+		this.context.waitTicks(2);
+		this.shot("wd_glint_restored");
+		this.command("item replace entity @p weapon.mainhand with minecraft:air");
+	}
+
+	/** Dropped items behind the player: vanilla, flat and bigger, then with loot beams. */
+	private void items() {
+		this.onGround(180f, 40f);
+		String item = "summon minecraft:item %.1f %d %.1f {Item:{id:\"minecraft:%s\",count:1},PickupDelay:32767s,Age:-32768s}";
+		this.command(item, this.bx - 0.4, this.by, this.bz - 1.7, "diamond_sword");
+		this.command(item, this.bx + 0.8, this.by, this.bz - 2.2, "golden_apple");
+		this.command(item, this.bx + 1.7, this.by, this.bz - 1.5, "grass_block");
+		this.command(item, this.bx + 0.5, this.by, this.bz - 1.2, "ender_pearl");
+		this.command(item, this.bx - 1.2, this.by, this.bz - 2.6, "enchanted_golden_apple");
+		this.command(item, this.bx + 2.4, this.by, this.bz - 3.0, "totem_of_undying");
+		this.context.waitTicks(30);
+		this.shot("wd_items");
+		this.enable("item_physics", true);
+		this.context.waitTicks(3);
+		this.shot("wd_items_physics");
+		this.enable("dropped_item_style", true);
+		this.set("dropped_item_style", "scale", "160");
+		this.context.waitTicks(3);
+		this.shot("wd_items_styled");
+		this.enable("item_physics", false);
+		this.enable("dropped_item_style", false);
+		this.enable("loot_beams", true);
+		this.set("loot_beams", "min_rarity", "\"all\"");
+		this.face(180f, 12f);
+		this.context.waitTicks(4);
+		this.shot("wd_loot_beams");
+		this.enable("loot_beams", false);
+		this.command("kill @e[type=minecraft:item]");
+	}
+
+	/** Hits on a husk: hurt tint and particles. */
+	private void hits() {
+		this.onGround(0f, 10f);
+		this.enable("hit_color", true);
+		this.enable("hit_particles", true);
+		this.command("gamemode survival @a");
+		this.command("summon minecraft:husk %.1f %d %.1f {NoAI:1b,Silent:1b,PersistenceRequired:1b,IsBaby:0b}", this.bx + 0.5, this.by,
+			this.bz + 2.9);
+		this.face(0f, 10f);
+		this.context.waitTicks(10);
+		this.context.getInput().pressMouse(0);
+		this.context.waitTicks(2);
+		this.shot("wd_hit");
+		this.set("hit_particles", "style", "\"magic\"");
+		this.context.waitTicks(14);
+		this.context.getInput().pressMouse(0);
+		this.context.waitTicks(2);
+		this.shot("wd_hit_magic");
+		this.enable("hit_color", false);
+		this.enable("hit_particles", false);
+		this.command("tp @e[type=minecraft:husk] ~ -200 ~");
+		this.command("gamemode creative @a");
+	}
+
+	/** Depth of field: focus on the near block, then on the distance. */
+	private void depthOfField() {
+		this.onGround(0f, 0f);
+		this.look(1, 0, 2);
+		this.context.waitTicks(6);
+		this.shot("wd_dof_off");
+		this.enable("depth_of_field", true);
+		this.context.waitTicks(30);
+		this.shot("wd_dof_near");
+		this.face(0f, -2f);
+		this.context.waitTicks(30);
+		this.shot("wd_dof_far");
+		this.enable("depth_of_field", false);
+	}
+
+	/** Over the village: day, bloom, sunset with and without sky tint, night. */
+	private void sky() {
+		this.aloft(0f, 14f);
+		this.shot("wd_day");
+		this.enable("bloom", true);
+		this.context.waitTicks(3);
+		this.shot("wd_bloom_day");
+		this.enable("bloom", false);
+		this.enable("time_changer", true);
+		this.set("time_changer", "hour", "18.6");
+		this.context.waitTicks(4);
+		this.shot("wd_sunset");
+		this.enable("sky_tint", true);
+		this.context.waitTicks(4);
+		this.shot("wd_sunset_tint");
+		this.set("time_changer", "hour", "23");
+		this.context.waitTicks(4);
+		this.shot("wd_night_tint");
+		this.enable("sky_tint", false);
+		this.context.waitTicks(2);
+		this.shot("wd_night");
+		this.enable("time_changer", false);
+	}
+
+	/** Night sky layers, looking north and up: starfield, aurora, meteors. */
+	private void nightSky() {
+		this.aloft(180f, -24f);
+		this.enable("time_changer", true);
+		this.set("time_changer", "hour", "23");
+		this.context.waitTicks(4);
+		this.shot("wd_sky_vanilla");
+		this.enable("starfield", true);
+		this.context.waitTicks(4);
+		this.shot("wd_starfield");
+		this.enable("aurora", true);
+		this.context.waitTicks(10);
+		this.shot("wd_aurora");
+		this.enable("aurora", false);
+		this.enable("shooting_stars", true);
+		this.set("shooting_stars", "rate", "120");
+		for (int i = 0; i < 6; i++) {
+			this.context.waitTicks(10);
+			this.shot("wd_meteors_" + i);
+		}
+		this.enable("shooting_stars", false);
+		this.enable("starfield", false);
+		this.enable("time_changer", false);
+	}
+
+	/** The moon bigger and full, rising in the east; the sun bigger in the morning. */
+	private void celestial() {
+		this.aloft(-90f, -12f);
+		this.enable("time_changer", true);
+		this.set("time_changer", "hour", "19.6");
+		this.context.waitTicks(4);
+		this.shot("wd_moon_vanilla");
+		this.enable("celestial", true);
+		this.set("celestial", "moon_size", "260");
+		this.set("celestial", "phase", "\"full\"");
+		this.context.waitTicks(4);
+		this.shot("wd_moon_big");
+		this.set("time_changer", "hour", "6.9");
+		this.set("celestial", "sun_size", "220");
+		this.context.waitTicks(4);
+		this.shot("wd_sun_big");
+		this.enable("celestial", false);
+		this.enable("time_changer", false);
+	}
+
+	/** Weather: rain, a thunderstorm and snow, each easing in. */
+	private void weather() {
+		this.aloft(0f, 14f);
+		this.enable("weather_changer", true);
+		this.set("weather_changer", "weather", "\"rain\"");
+		this.context.waitTicks(80);
+		this.shot("wd_rain");
+		this.set("weather_changer", "weather", "\"thunderstorm\"");
+		this.context.waitTicks(80);
+		this.shot("wd_thunder");
+		this.set("weather_changer", "weather", "\"snow\"");
+		this.context.waitTicks(60);
+		this.shot("wd_snow");
+		this.set("weather_changer", "weather", "\"clear\"");
+		this.context.waitTicks(100);
+		this.enable("weather_changer", false);
+	}
+
+	/** Atmospheric fog, then clouds from below (the harness turns clouds off for stable screenshots). */
+	private void atmosphere() {
+		this.aloft(0f, 14f);
+		this.enable("atmospheric_fog", true);
+		this.context.waitTicks(4);
+		this.shot("wd_fog");
+		this.enable("atmospheric_fog", false);
+		this.context.runOnClient(c -> c.options.cloudStatus().set(CloudStatus.FANCY));
+		this.face(0f, -32f);
+		this.context.waitTicks(4);
+		this.shot("wd_clouds_none");
+		this.enable("cloud_style", true);
+		this.set("cloud_style", "color", "{\"color\":\"#FF9AA8\",\"mode\":\"static\"}");
+		this.set("cloud_style", "opacity", "70");
+		this.set("cloud_style", "height", "-48");
+		this.context.waitTicks(4);
+		this.shot("wd_clouds");
+		this.enable("cloud_style", false);
+		this.context.runOnClient(c -> c.options.cloudStatus().set(CloudStatus.OFF));
+	}
+
+	private void grading() {
+		this.aloft(0f, 14f);
+		for (String look : new String[] {"cinematic", "vibrant", "moody", "warm", "cool", "pastel"}) {
+			this.enable("color_grading", true);
+			this.set("color_grading", "look", "\"" + look + "\"");
+			this.context.waitTicks(3);
+			this.shot("wd_grade_" + look);
+		}
+		this.enable("color_grading", false);
+	}
+
+	/** Motion blur while turning, then holding still. */
+	private void motion() {
+		this.aloft(0f, 14f);
+		this.enable("motion_blur", true);
+		this.set("motion_blur", "strength", "100");
+		for (int i = 0; i < 8; i++) {
+			this.context.runOnClient(c -> c.player.setYRot(c.player.getYRot() + 7f));
+			this.context.waitTicks(1);
+		}
+		this.context.runOnClient(c -> c.player.setYRot(c.player.getYRot() + 7f));
+		this.context.takeScreenshot("wd_motion_blur");
+		this.context.waitTicks(4);
+		this.shot("wd_motion_still");
+		this.enable("motion_blur", false);
+	}
+
+	/** On the ground at night: fireflies, then bloom on a sea lantern and glowstone right in front. */
+	private void groundNight() {
+		this.onGround(0f, 6f);
+		this.command("setblock %d %d %d minecraft:sea_lantern", this.bx + 1, this.by, this.bz + 2);
+		this.command("setblock %d %d %d minecraft:glowstone", this.bx - 1, this.by, this.bz + 3);
+		this.command("setblock %d %d %d minecraft:lantern", this.bx, this.by, this.bz + 4);
+		this.enable("time_changer", true);
+		this.set("time_changer", "hour", "22");
+		this.context.waitTicks(20);
+		this.shot("wd_ground_night");
+		this.enable("fireflies", true);
+		this.set("fireflies", "density", "120");
+		this.context.waitTicks(80);
+		this.shot("wd_fireflies");
+		this.enable("fireflies", false);
+		this.face(0f, 22f);
+		this.context.waitTicks(4);
+		this.shot("wd_bloom_night_off");
+		this.enable("bloom", true);
+		this.context.waitTicks(3);
+		this.shot("wd_bloom_night");
+		this.enable("bloom", false);
+		this.enable("time_changer", false);
+		this.command("setblock %d %d %d minecraft:polished_andesite", this.bx + 1, this.by, this.bz + 2);
+		this.command("setblock %d %d %d minecraft:air", this.bx - 1, this.by, this.bz + 3);
+		this.command("setblock %d %d %d minecraft:air", this.bx, this.by, this.bz + 4);
+	}
+
+	/** Daytime dust motes and falling leaves under the trees. */
+	private void motes() {
+		this.onGround(30f, 4f);
+		this.enable("dust_motes", true);
+		this.set("dust_motes", "size", "200");
+		this.set("dust_motes", "density", "300");
+		this.enable("falling_leaves", true);
+		this.set("falling_leaves", "amount", "2000");
+		this.context.waitTicks(60);
+		this.shot("wd_motes_leaves");
+		this.enable("dust_motes", false);
+		this.enable("falling_leaves", false);
+	}
+
+	/** Stands on the ground at the base position, looking as given. */
+	private void onGround(float yaw, float pitch) {
+		this.context.runOnClient(c -> {
+			c.player.getAbilities().flying = false;
+			c.player.onUpdateAbilities();
+		});
+		this.command("tp @p %.1f %d %.1f %.1f %.1f", this.bx + 0.5, this.by, this.bz + 0.5, yaw, pitch);
+		this.context.waitTicks(3);
+		this.face(yaw, pitch);
+		this.context.waitTicks(2);
+	}
+
+	/** Hovers over the village, looking as given. */
+	private void aloft(float yaw, float pitch) {
+		this.command("tp @p %.1f %d %.1f %.1f %.1f", this.bx + 0.5, this.by + 36, this.bz - 13.5, yaw, pitch);
+		this.context.waitTicks(3);
+		this.context.runOnClient(c -> {
+			c.player.getAbilities().flying = true;
+			c.player.onUpdateAbilities();
+		});
+		this.face(yaw, pitch);
+		this.context.waitTicks(20);
+	}
+
+	private void command(String format, Object... args) {
+		this.server.runCommand(args.length == 0 ? format : String.format(Locale.ROOT, format, args));
+	}
+
+	private void face(float yaw, float pitch) {
+		this.context.runOnClient(c -> {
 			c.player.setYRot(yaw);
 			c.player.setXRot(pitch);
 			c.player.yRotO = yaw;
@@ -369,15 +462,15 @@ public final class XeysWorldGameTest implements FabricClientGameTest {
 	}
 
 	/** Points the camera at the center of the block at an offset from the player's feet. */
-	private static void look(ClientGameTestContext context, int dx, int dy, int dz) {
-		context.runOnClient(c -> {
+	private void look(int dx, int dy, int dz) {
+		this.context.runOnClient(c -> {
 			BlockPos feet = c.player.blockPosition();
 			c.player.lookAt(EntityAnchorArgument.Anchor.EYES, Vec3.atCenterOf(feet.offset(dx, dy, dz)));
 		});
 	}
 
-	private static void set(ClientGameTestContext context, String id, String key, String json) {
-		context.runOnClient(c -> {
+	private void set(String id, String key, String json) {
+		this.context.runOnClient(c -> {
 			for (Setting<?> s : ModuleManager.get(id).settings()) {
 				if (s.key().equals(key)) {
 					s.fromJson(JsonParser.parseString(json));
@@ -388,16 +481,16 @@ public final class XeysWorldGameTest implements FabricClientGameTest {
 		});
 	}
 
-	private static void enable(ClientGameTestContext context, String id, boolean on) {
-		context.runOnClient(c -> ModuleManager.get(id).setEnabled(on));
+	private void enable(String id, boolean on) {
+		this.context.runOnClient(c -> ModuleManager.get(id).setEnabled(on));
 	}
 
-	private static void shot(ClientGameTestContext context, String name) {
-		context.runOnClient(c -> {
+	private void shot(String name) {
+		this.context.runOnClient(c -> {
 			c.getToastManager().clear();
 			c.gui.getChat().clearMessages(false);
 		});
-		context.waitTicks(1);
-		context.takeScreenshot(name);
+		this.context.waitTicks(1);
+		this.context.takeScreenshot(name);
 	}
 }

@@ -21,7 +21,7 @@ public final class ShootingStarsModule extends Module implements WorldEvents.Sky
 	private static final int MAX = 8;
 	private static final int STEPS = 6;
 
-	private final NumberSetting rate = this.add(new NumberSetting("rate", "Frequency", 8f, 1f, 60f, 1f).unit(" / min").group("Meteors"));
+	private final NumberSetting rate = this.add(new NumberSetting("rate", "Frequency", 10f, 1f, 120f, 1f).unit(" / min").group("Meteors"));
 	private final NumberSetting length = this.add(new NumberSetting("length", "Length", 100f, 40f, 250f, 5f).unit("%").group("Meteors"));
 	private final NumberSetting speed = this.add(new NumberSetting("speed", "Speed", 100f, 40f, 250f, 5f).unit("%").group("Meteors"));
 	private final ColorSetting color = this.add(new ColorSetting("color", "Tail Color", 0xFFB9D4FF).noAlpha().group("Meteors"));
@@ -107,7 +107,7 @@ public final class ShootingStarsModule extends Module implements WorldEvents.Sky
 		this.az[i] = kz;
 		float s = this.speed.value() / 100f;
 		this.omega[i] = (float) Math.toRadians(30.0 + this.random.nextDouble() * 30.0) * s;
-		this.arc[i] = (float) Math.toRadians(7.0 + this.random.nextDouble() * 7.0) * this.length.value() / 100f;
+		this.arc[i] = (float) Math.toRadians(9.0 + this.random.nextDouble() * 8.0) * this.length.value() / 100f;
 		this.life[i] = 0.55f + this.random.nextFloat() * 0.6f;
 		this.age[i] = 0f;
 		this.bright[i] = 0.6f + this.random.nextFloat() * 0.4f;
@@ -131,7 +131,7 @@ public final class ShootingStarsModule extends Module implements WorldEvents.Sky
 	private void build() {
 		DynamicMesh m = this.mesh.begin();
 		float r = SkyDraw.RADIUS;
-		float halfWidth = 0.32f;
+		float halfWidth = 0.5f;
 		for (int i = 0; i < this.count; i++) {
 			float t = this.age[i] / this.life[i];
 			float fade = Math.min(1f, t / 0.12f) * Math.min(1f, (1f - t) / 0.35f);

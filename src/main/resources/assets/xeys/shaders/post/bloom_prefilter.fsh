@@ -13,13 +13,11 @@ out vec4 fragColor;
 
 const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
 
-// The part of a color above the threshold, with a soft knee so glows fade in instead of popping.
+// The part of a color that glows. Lights and lit surfaces in an LDR image sit only a little above the
+// daytime sky, so the ramp is narrow: the sky barely contributes while lanterns, lava and the sun do.
 vec3 bright(vec3 c) {
     float l = dot(c, LUMA);
-    float knee = 0.5 * Threshold + 1e-4;
-    float s = clamp(l - Threshold + knee, 0.0, 2.0 * knee);
-    s = s * s / (4.0 * knee);
-    return c * (max(s, l - Threshold) / max(l, 1e-4));
+    return c * smoothstep(Threshold - 0.12, Threshold + 0.18, l);
 }
 
 // Luminance-weighted (Karis) so a single bright pixel cannot make the whole glow flicker.

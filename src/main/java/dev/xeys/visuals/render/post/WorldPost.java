@@ -140,8 +140,8 @@ public final class WorldPost {
 			b.putVec4(dx, dy, dz, m);
 			b.putVec4(f.motionSamples, f.motionMax, 0f, 0f);
 			b.putVec4(Math.max(f.focus, 0.1f), f.aperture, dof ? f.dof : 0f, 0f);
-			// Every level was summed into the result; average them so strength means the same at any radius.
-			b.putVec4(bloom ? f.bloom / Math.max(1, f.bloomLevels) : 0f, 0f, 0f, 0f);
+			// Every level was summed into the result; scale so a wider radius spreads rather than brightens.
+			b.putVec4(bloom ? f.bloom / (float) Math.sqrt(Math.max(1, f.bloomLevels)) : 0f, 0f, 0f, 0f);
 			b.putVec4(((f.bloomTint >> 16) & 0xFF) / 255f, ((f.bloomTint >> 8) & 0xFF) / 255f, (f.bloomTint & 0xFF) / 255f, 1f);
 			b.putVec4(w, h, 1f / w, 1f / h);
 		});
