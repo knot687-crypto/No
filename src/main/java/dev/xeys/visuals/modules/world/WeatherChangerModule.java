@@ -8,13 +8,15 @@ import dev.xeys.visuals.core.setting.EnumSetting;
 import dev.xeys.visuals.ui.Icons;
 import dev.xeys.visuals.world.WorldHooks;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.level.biome.Biome;
 
-/** Shows clear skies, rain or a thunderstorm regardless of the real weather (client only), easing between them. */
+/** Shows clear skies, rain, a thunderstorm or snow regardless of the real weather (client only), easing between them. */
 public final class WeatherChangerModule extends Module implements Events.FrameStart {
 	public enum Weather {
 		CLEAR,
 		RAIN,
-		THUNDERSTORM
+		THUNDERSTORM,
+		SNOW
 	}
 
 	private final EnumSetting<Weather> weather = this.add(new EnumSetting<>("weather", "Weather", Weather.CLEAR).group("Weather"));
@@ -45,6 +47,12 @@ public final class WeatherChangerModule extends Module implements Events.FrameSt
 		this.rain += (targetRain - this.rain) * k;
 		this.thunder += (targetThunder - this.thunder) * k;
 		WorldHooks.setWeather(this.rain, this.thunder);
+		// Rain or snow everywhere, whatever the biome; clear skies keep each biome's own (fading out).
+		WorldHooks.setPrecipitation(switch (this.weather.get()) {
+			case CLEAR -> null;
+			case RAIN, THUNDERSTORM -> Biome.Precipitation.RAIN;
+			case SNOW -> Biome.Precipitation.SNOW;
+		});
 	}
 
 	@Override

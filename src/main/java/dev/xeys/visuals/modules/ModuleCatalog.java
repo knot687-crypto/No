@@ -29,15 +29,28 @@ import dev.xeys.visuals.modules.hud.WatermarkModule;
 import dev.xeys.visuals.modules.hud.WeatherModule;
 import dev.xeys.visuals.modules.screen.AmbientGlowModule;
 import dev.xeys.visuals.modules.world.AtmosphericFogModule;
+import dev.xeys.visuals.modules.world.AuroraModule;
 import dev.xeys.visuals.modules.world.BlockOutlineModule;
 import dev.xeys.visuals.modules.world.BlockOverlayModule;
+import dev.xeys.visuals.modules.world.BloomModule;
+import dev.xeys.visuals.modules.world.BreakProgressModule;
+import dev.xeys.visuals.modules.world.CelestialModule;
 import dev.xeys.visuals.modules.world.CloudStyleModule;
 import dev.xeys.visuals.modules.world.ColorGradingModule;
+import dev.xeys.visuals.modules.world.DepthOfFieldModule;
 import dev.xeys.visuals.modules.world.DroppedItemStyleModule;
+import dev.xeys.visuals.modules.world.DustMotesModule;
+import dev.xeys.visuals.modules.world.EnchantGlintModule;
+import dev.xeys.visuals.modules.world.FallingLeavesModule;
+import dev.xeys.visuals.modules.world.FirefliesModule;
 import dev.xeys.visuals.modules.world.HitColorModule;
 import dev.xeys.visuals.modules.world.HitParticlesModule;
 import dev.xeys.visuals.modules.world.ItemPhysicsModule;
+import dev.xeys.visuals.modules.world.LootBeamsModule;
+import dev.xeys.visuals.modules.world.MotionBlurModule;
+import dev.xeys.visuals.modules.world.ShootingStarsModule;
 import dev.xeys.visuals.modules.world.SkyTintModule;
+import dev.xeys.visuals.modules.world.StarfieldModule;
 import dev.xeys.visuals.modules.world.TimeChangerModule;
 import dev.xeys.visuals.modules.world.WeatherChangerModule;
 import dev.xeys.visuals.modules.screen.ChromaticAberrationModule;
@@ -90,6 +103,19 @@ final class ModuleCatalog {
 		ModuleManager.register(new HitParticlesModule());
 		ModuleManager.register(new ItemPhysicsModule());
 		ModuleManager.register(new DroppedItemStyleModule());
+		ModuleManager.register(new BloomModule());
+		ModuleManager.register(new MotionBlurModule());
+		ModuleManager.register(new DepthOfFieldModule());
+		ModuleManager.register(new AuroraModule());
+		ModuleManager.register(new ShootingStarsModule());
+		ModuleManager.register(new StarfieldModule());
+		ModuleManager.register(new CelestialModule());
+		ModuleManager.register(new FirefliesModule());
+		ModuleManager.register(new DustMotesModule());
+		ModuleManager.register(new FallingLeavesModule());
+		ModuleManager.register(new LootBeamsModule());
+		ModuleManager.register(new BreakProgressModule());
+		ModuleManager.register(new EnchantGlintModule());
 	}
 
 	/** Screen batch 1: post effects in the combined screen pass, then 2D overlays and screen restyles. */

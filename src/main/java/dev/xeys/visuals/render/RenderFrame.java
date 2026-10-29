@@ -38,6 +38,11 @@ public final class RenderFrame {
 		return sceneBlurRequested;
 	}
 
+	/** Runs right after the level is drawn, while its depth buffer is intact and before the hand. */
+	public static void afterLevel() {
+		dev.xeys.visuals.render.post.WorldPost.process();
+	}
+
 	/** Runs after the world (and any immediate background) is drawn, right before the GUI flush. */
 	public static void beforeGuiFlush(GuiRenderState state) {
 		// Screen effects grade the world image first, so glass panels blur the graded result.

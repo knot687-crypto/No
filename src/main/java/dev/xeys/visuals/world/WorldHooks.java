@@ -4,6 +4,8 @@ import dev.xeys.visuals.core.event.Events;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.attribute.EnvironmentAttribute;
+import net.minecraft.world.level.biome.Biome;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Client-only visual overrides of the world: time of day, weather and environment attributes. Only the
@@ -15,6 +17,17 @@ public final class WorldHooks {
 	/** Overridden rain and thunder levels (0..1), or negative for none. */
 	private static float rain = -1f;
 	private static float thunder = -1f;
+	/** Precipitation drawn everywhere while weather is overridden, or null for each biome's own. */
+	private static Biome.@Nullable Precipitation precipitation;
+
+	/** Sun and moon size multipliers. */
+	public static float sunScale = 1f;
+	public static float moonScale = 1f;
+	/** Multiplier on how often leaves drift from leaf blocks. */
+	public static float leafChance = 1f;
+	/** Enchantment glint speed and strength multipliers. */
+	public static float glintSpeed = 1f;
+	public static float glintStrength = 1f;
 
 	private WorldHooks() {
 	}
@@ -35,6 +48,15 @@ public final class WorldHooks {
 	public static void clearWeather() {
 		rain = -1f;
 		thunder = -1f;
+		precipitation = null;
+	}
+
+	public static void setPrecipitation(Biome.@Nullable Precipitation type) {
+		precipitation = type;
+	}
+
+	public static Biome.@Nullable Precipitation precipitation() {
+		return rain >= 0f ? precipitation : null;
 	}
 
 	public static boolean overridesDayTime() {

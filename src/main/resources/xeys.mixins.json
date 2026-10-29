@@ -18,10 +18,13 @@
 		"GuiMixin",
 		"ItemEntityRendererMixin",
 		"KeyboardHandlerMixin",
+		"LeavesBlockMixin",
 		"LevelLoadingScreenMixin",
 		"LevelMixin",
+		"LevelRendererMixin",
 		"MinecraftMixin",
 		"MouseHandlerMixin",
+		"MultiPlayerGameModeAccessor",
 		"MultiPlayerGameModeMixin",
 		"OverlayTextureAccessor",
 		"PanoramaRendererMixin",
@@ -29,7 +32,10 @@
 		"PlayerMixin",
 		"ScreenMixin",
 		"ScreenshotMixin",
-		"TooltipRenderUtilMixin"
+		"SkyRendererMixin",
+		"TextureTransformMixin",
+		"TooltipRenderUtilMixin",
+		"WeatherEffectRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

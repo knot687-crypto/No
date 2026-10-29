@@ -29,11 +29,11 @@ public final class BlockOutlineModule extends Module implements WorldEvents.Bloc
 	}
 
 	private final ColorSetting color = this.add(new ColorSetting("color", "Color", 0xFFFFFFFF, ColorSetting.Mode.ACCENT).group("Outline"));
-	private final NumberSetting thickness = this.add(new NumberSetting("thickness", "Thickness", 2.5f, 1f, 6f, 0.25f).unit("px").decimals(2)
+	private final NumberSetting thickness = this.add(new NumberSetting("thickness", "Thickness", 3f, 1f, 6f, 0.25f).unit("px").decimals(2)
 		.describe("At 1080p; scales with resolution").group("Outline"));
 	private final EnumSetting<Style> style = this.add(new EnumSetting<>("style", "Style", Style.FULL).group("Outline"));
 	private final BoolSetting glow = this.add(new BoolSetting("glow", "Glow", true).group("Outline"));
-	private final NumberSetting glowStrength = this.add(new NumberSetting("glow_strength", "Glow Strength", 35f, 5f, 100f, 1f).unit("%")
+	private final NumberSetting glowStrength = this.add(new NumberSetting("glow_strength", "Glow Strength", 60f, 5f, 100f, 1f).unit("%")
 		.visibleWhen(this.glow::on).group("Outline"));
 	private final BoolSetting glide = this.add(new BoolSetting("glide", "Glide", true).describe("The outline slides smoothly between blocks")
 		.group("Motion"));
@@ -56,8 +56,11 @@ public final class BlockOutlineModule extends Module implements WorldEvents.Bloc
 		float corners = this.style.is(Style.CORNERS) ? 0.24f : 0f;
 		boolean box = corners > 0f || BlockTarget.moving();
 		if (this.glow.on()) {
-			int g = Colors.mulAlpha(c, this.glowStrength.value() / 100f * 0.45f);
-			this.draw(vc, pose, outline, cam, box, corners, g, width * 3.2f);
+			// Three widening, fading passes approximate a soft falloff around the line.
+			float s = this.glowStrength.value() / 100f;
+			this.draw(vc, pose, outline, cam, box, corners, Colors.mulAlpha(c, s * 0.08f), width * 6f);
+			this.draw(vc, pose, outline, cam, box, corners, Colors.mulAlpha(c, s * 0.14f), width * 3.6f);
+			this.draw(vc, pose, outline, cam, box, corners, Colors.mulAlpha(c, s * 0.24f), width * 2f);
 		}
 		this.draw(vc, pose, outline, cam, box, corners, c, width);
 		if (consumers instanceof MultiBufferSource.BufferSource source) {

@@ -34,6 +34,8 @@ public final class XeysClient implements ClientModInitializer {
 		loader.registerReloader(Xeys.id("moon"), MoonSky.reloader());
 		loader.registerReloader(Xeys.id("pipelines"), (ResourceManagerReloadListener) manager -> XeysPipelines.precompileAll());
 		loader.addReloaderOrdering(ResourceReloaderKeys.Client.SHADERS, Xeys.id("pipelines"));
+		loader.registerReloader(Xeys.id("glint"), (ResourceManagerReloadListener) manager -> dev.xeys.visuals.world.GlintTextures.onReload());
+		loader.addReloaderOrdering(ResourceReloaderKeys.Client.TEXTURES, Xeys.id("glint"));
 
 		Modules.init();
 		ConfigManager.init();

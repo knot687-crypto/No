@@ -26,7 +26,7 @@ import net.minecraft.world.phys.Vec3;
 public final class BlockOverlayModule extends Module implements WorldEvents.BlockOutline {
 	private static final float INFLATE = 0.0025f;
 
-	private final ColorSetting color = this.add(new ColorSetting("color", "Color", 0x38FFFFFF, ColorSetting.Mode.ACCENT).group("Overlay"));
+	private final ColorSetting color = this.add(new ColorSetting("color", "Color", 0x55FFFFFF, ColorSetting.Mode.ACCENT).group("Overlay"));
 	private final BoolSetting faceOnly = this.add(new BoolSetting("face_only", "Face Only", false).describe("Fill only the face you look at")
 		.group("Overlay"));
 	private final BoolSetting pulse = this.add(new BoolSetting("pulse", "Breathing", true).group("Overlay"));
@@ -44,7 +44,7 @@ public final class BlockOverlayModule extends Module implements WorldEvents.Bloc
 		VertexConsumer vc = consumers.getBuffer(RenderTypes.debugFilledBox());
 		int c = this.color.color();
 		if (this.pulse.on()) {
-			c = Colors.mulAlpha(c, 0.7f + 0.3f * (float) Math.sin(Clock.time() * Math.PI * 2.0 / 2.4));
+			c = Colors.mulAlpha(c, 0.8f + 0.2f * (float) Math.sin(Clock.time() * Math.PI * 2.0 / 2.4));
 		}
 		float x0 = (float) (BlockTarget.minX() - cam.x) - INFLATE;
 		float y0 = (float) (BlockTarget.minY() - cam.y) - INFLATE;

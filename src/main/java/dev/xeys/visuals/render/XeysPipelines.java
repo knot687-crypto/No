@@ -136,6 +136,82 @@ public final class XeysPipelines {
 		.withoutBlend()
 		.build());
 
+	/** First bloom downsample: keeps only what is brighter than a threshold. */
+	public static final RenderPipeline BLOOM_PREFILTER = register(RenderPipeline.builder(FULLSCREEN)
+		.withLocation(Xeys.id("pipeline/bloom_prefilter"))
+		.withFragmentShader(Xeys.id("post/bloom_prefilter"))
+		.withSampler("InSampler")
+		.withUniform("BlurConfig", UniformType.UNIFORM_BUFFER)
+		.withoutBlend()
+		.build());
+
+	/** Bloom upsample: adds the blurred deeper level onto this level, accumulating every radius. */
+	public static final RenderPipeline BLOOM_UP = register(RenderPipeline.builder(FULLSCREEN)
+		.withLocation(Xeys.id("pipeline/bloom_up"))
+		.withFragmentShader(Xeys.id("post/kawase_up"))
+		.withSampler("InSampler")
+		.withUniform("BlurConfig", UniformType.UNIFORM_BUFFER)
+		.withBlend(BlendFunction.ADDITIVE)
+		.build());
+
+	/** Motion blur, depth of field and bloom over the world image, before the hand is drawn. */
+	public static final RenderPipeline WORLD_POST = register(RenderPipeline.builder(FULLSCREEN)
+		.withLocation(Xeys.id("pipeline/world_post"))
+		.withFragmentShader(Xeys.id("post/world_post"))
+		.withSampler("SceneSampler")
+		.withSampler("DepthSampler")
+		.withSampler("DofSampler")
+		.withSampler("BloomSampler")
+		.withUniform("WorldPost", UniformType.UNIFORM_BUFFER)
+		.withoutBlend()
+		.build());
+
+	/** Additive sky layers drawn in vanilla's sky pass, on the celestial sphere. */
+	private static final RenderPipeline.Snippet SKY_FX = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+		.withVertexShader(Xeys.id("core/sky_fx"))
+		.withFragmentShader(Xeys.id("core/sky_fx"))
+		.withUniform("SkyFx", UniformType.UNIFORM_BUFFER)
+		.withBlend(BlendFunction.OVERLAY)
+		.withDepthWrite(false)
+		.withCull(false)
+		.withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+		.buildSnippet();
+
+	public static final RenderPipeline SKY_AURORA = register(RenderPipeline.builder(SKY_FX)
+		.withLocation(Xeys.id("pipeline/sky_aurora"))
+		.withShaderDefine("SKY_AURORA")
+		.build());
+
+	public static final RenderPipeline SKY_METEOR = register(RenderPipeline.builder(SKY_FX)
+		.withLocation(Xeys.id("pipeline/sky_meteor"))
+		.withShaderDefine("SKY_METEOR")
+		.build());
+
+	public static final RenderPipeline SKY_STARS = register(RenderPipeline.builder(SKY_FX)
+		.withLocation(Xeys.id("pipeline/sky_stars"))
+		.withShaderDefine("SKY_STARS")
+		.build());
+
+	/** Additive, fogged glow sprites in the world (fireflies, motes, beams). Depth-tested, never written. */
+	private static final RenderPipeline.Snippet WORLD_GLOW = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET)
+		.withVertexShader(Xeys.id("core/world_glow"))
+		.withFragmentShader(Xeys.id("core/world_glow"))
+		.withBlend(BlendFunction.LIGHTNING)
+		.withDepthWrite(false)
+		.withCull(false)
+		.withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+		.buildSnippet();
+
+	public static final RenderPipeline WORLD_GLOW_DOT = register(RenderPipeline.builder(WORLD_GLOW)
+		.withLocation(Xeys.id("pipeline/world_glow_dot"))
+		.withShaderDefine("GLOW_DOT")
+		.build());
+
+	public static final RenderPipeline WORLD_GLOW_BEAM = register(RenderPipeline.builder(WORLD_GLOW)
+		.withLocation(Xeys.id("pipeline/world_glow_beam"))
+		.withShaderDefine("GLOW_BEAM")
+		.build());
+
 	/** Static sky gradient and nebula, rendered once per resize into a half-resolution cache. */
 	public static final RenderPipeline MOON_NEBULA = register(RenderPipeline.builder(FULLSCREEN)
 		.withLocation(Xeys.id("pipeline/moon_nebula"))
