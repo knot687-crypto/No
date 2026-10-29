@@ -1,4 +1,6 @@
 {
 	"key.category.xeys.xeys": "XEYS VISUALS",
-	"key.xeys.open_gui": "Open Visuals Menu"
+	"key.xeys.open_gui": "Open Visuals Menu",
+	"key.xeys.zoom": "Zoom (hold)",
+	"key.xeys.emote": "Play Emote (hold)"
 }

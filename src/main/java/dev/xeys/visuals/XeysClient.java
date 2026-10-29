@@ -43,6 +43,7 @@ public final class XeysClient implements ClientModInitializer {
 
 		Keybinds.register();
 		WorldEntryTransition.register();
+		dev.xeys.visuals.anim.Zoom.register();
 		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Xeys.id("hud"), HudRenderer::render);
 
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {

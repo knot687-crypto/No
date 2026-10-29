@@ -19,6 +19,10 @@ public final class RenderFrame {
 		sceneBlurRequested = false;
 		WorldEntryTransition.frame();
 		dev.xeys.visuals.core.combat.HitTracker.frame();
+		dev.xeys.visuals.anim.Zoom.frame();
+		dev.xeys.visuals.anim.Emotes.frame();
+		dev.xeys.visuals.anim.HandFx.frame();
+		dev.xeys.visuals.anim.CameraMotion.frame();
 		dev.xeys.visuals.core.event.Events.frameStart();
 		if (DEBUG_FRAMES && Clock.frame() % 30 == 0) {
 			net.minecraft.client.Minecraft mc = net.minecraft.client.Minecraft.getInstance();

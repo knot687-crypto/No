@@ -1,6 +1,31 @@
 package dev.xeys.visuals.modules;
 
 import dev.xeys.visuals.core.module.ModuleManager;
+import dev.xeys.visuals.modules.animations.BreathingModule;
+import dev.xeys.visuals.modules.animations.CameraShakeModule;
+import dev.xeys.visuals.modules.animations.DeathAnimationModule;
+import dev.xeys.visuals.modules.animations.ElytraRollModule;
+import dev.xeys.visuals.modules.animations.EmotesModule;
+import dev.xeys.visuals.modules.animations.HandSwayModule;
+import dev.xeys.visuals.modules.animations.HeartbeatModule;
+import dev.xeys.visuals.modules.animations.HitRecoilModule;
+import dev.xeys.visuals.modules.animations.HitSquashModule;
+import dev.xeys.visuals.modules.animations.HurtCameraModule;
+import dev.xeys.visuals.modules.animations.ItemSwitchModule;
+import dev.xeys.visuals.modules.animations.JumpKickModule;
+import dev.xeys.visuals.modules.animations.LandingDipModule;
+import dev.xeys.visuals.modules.animations.OldAnimationsModule;
+import dev.xeys.visuals.modules.animations.PerspectiveGlideModule;
+import dev.xeys.visuals.modules.animations.SmoothLookModule;
+import dev.xeys.visuals.modules.animations.SmoothSneakModule;
+import dev.xeys.visuals.modules.animations.StrafeTiltModule;
+import dev.xeys.visuals.modules.animations.SwingSpeedModule;
+import dev.xeys.visuals.modules.animations.SwingStyleModule;
+import dev.xeys.visuals.modules.animations.SwingTrailModule;
+import dev.xeys.visuals.modules.animations.ViewBobbingModule;
+import dev.xeys.visuals.modules.animations.ViewModelModule;
+import dev.xeys.visuals.modules.animations.WaterSwayModule;
+import dev.xeys.visuals.modules.animations.ZoomModule;
 import dev.xeys.visuals.modules.cosmetics.AuraModule;
 import dev.xeys.visuals.modules.cosmetics.CapeModule;
 import dev.xeys.visuals.modules.cosmetics.ChinaHatModule;
@@ -112,6 +137,7 @@ final class ModuleCatalog {
 		screenBatch1();
 		worldBatch1();
 		cosmeticsBatch1();
+		animationsBatch1();
 	}
 
 	/** World batch 1: block highlighting, time, weather, sky and fog, grading, combat feedback and items. */
@@ -234,5 +260,34 @@ final class ModuleCatalog {
 		ModuleManager.register(new NametagsModule());
 		ModuleManager.register(new HideArmorModule());
 		ModuleManager.register(new PlayerScaleModule());
+	}
+
+	/** Animations batch 1: hand and swing animation, camera motion, zoom, emotes and creature reactions. */
+	private static void animationsBatch1() {
+		ModuleManager.register(new OldAnimationsModule());
+		ModuleManager.register(new SwingSpeedModule());
+		ModuleManager.register(new SwingStyleModule());
+		ModuleManager.register(new ViewModelModule());
+		ModuleManager.register(new ItemSwitchModule());
+		ModuleManager.register(new HandSwayModule());
+		ModuleManager.register(new BreathingModule());
+		ModuleManager.register(new ZoomModule());
+		ModuleManager.register(new StrafeTiltModule());
+		ModuleManager.register(new LandingDipModule());
+		ModuleManager.register(new JumpKickModule());
+		ModuleManager.register(new ElytraRollModule());
+		ModuleManager.register(new HurtCameraModule());
+		ModuleManager.register(new CameraShakeModule());
+		ModuleManager.register(new ViewBobbingModule());
+		ModuleManager.register(new SmoothSneakModule());
+		ModuleManager.register(new SmoothLookModule());
+		ModuleManager.register(new PerspectiveGlideModule());
+		ModuleManager.register(new HitRecoilModule());
+		ModuleManager.register(new WaterSwayModule());
+		ModuleManager.register(new HeartbeatModule());
+		ModuleManager.register(new EmotesModule());
+		ModuleManager.register(new HitSquashModule());
+		ModuleManager.register(new DeathAnimationModule());
+		ModuleManager.register(new SwingTrailModule());
 	}
 }

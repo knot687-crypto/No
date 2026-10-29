@@ -16,12 +16,18 @@ import org.lwjgl.glfw.GLFW;
 public final class Keybinds {
 	public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(Xeys.id("xeys"));
 	public static KeyMapping openGui;
+	/** Held to zoom (Smooth Zoom). */
+	public static KeyMapping zoom;
+	/** Held to play the chosen emote (Emotes). */
+	public static KeyMapping emote;
 
 	private Keybinds() {
 	}
 
 	public static void register() {
 		openGui = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.xeys.open_gui", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_RIGHT_SHIFT, CATEGORY));
+		zoom = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.xeys.zoom", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_C, CATEGORY));
+		emote = KeyBindingHelper.registerKeyBinding(new KeyMapping("key.xeys.emote", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_B, CATEGORY));
 		ClientTickEvents.END_CLIENT_TICK.register(mc -> {
 			while (openGui.consumeClick()) {
 				if (mc.screen == null) {

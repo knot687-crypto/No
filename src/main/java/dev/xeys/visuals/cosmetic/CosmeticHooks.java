@@ -1,5 +1,6 @@
 package dev.xeys.visuals.cosmetic;
 
+import dev.xeys.visuals.anim.Emotes;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.core.ClientAsset;
 import net.minecraft.network.chat.Component;
@@ -31,6 +32,9 @@ public final class CosmeticHooks {
 	}
 
 	public static void extract(Avatar avatar, AvatarRenderState state) {
+		if (Cosmetics.isSelf(state.id)) {
+			state.bodyRot += Emotes.spin();
+		}
 		if (!Cosmetics.shownOn(state.id)) {
 			return;
 		}
