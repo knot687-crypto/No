@@ -1,6 +1,7 @@
 package dev.xeys.visuals.core.event;
 
 import dev.xeys.visuals.core.module.Module;
+import dev.xeys.visuals.cosmetic.CosmeticContext;
 import dev.xeys.visuals.render.post.WorldFx;
 import dev.xeys.visuals.render.sky.SkyContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
@@ -35,7 +36,13 @@ public final class WorldEvents {
 		void onSky(SkyContext sky);
 	}
 
+	/** Draws on a player model (cosmetics), in the model's own space; see {@link CosmeticContext}. */
+	public interface PlayerLayer {
+		void submitOnPlayer(CosmeticContext context);
+	}
+
 	public static final Listeners<AfterEntities> AFTER_ENTITIES = new Listeners<>();
+	public static final Listeners<PlayerLayer> PLAYER_LAYER = new Listeners<>();
 	public static final Listeners<WorldPostEffect> WORLD_POST = new Listeners<>();
 	public static final Listeners<Sky> SKY = new Listeners<>();
 	public static final Listeners<BeforeTranslucent> BEFORE_TRANSLUCENT = new Listeners<>();
@@ -64,6 +71,9 @@ public final class WorldEvents {
 		if (module instanceof Sky l) {
 			SKY.add(l);
 		}
+		if (module instanceof PlayerLayer l) {
+			PLAYER_LAYER.add(l);
+		}
 	}
 
 	static void unsubscribe(Module module) {
@@ -84,6 +94,9 @@ public final class WorldEvents {
 		}
 		if (module instanceof Sky l) {
 			SKY.remove(l);
+		}
+		if (module instanceof PlayerLayer l) {
+			PLAYER_LAYER.remove(l);
 		}
 	}
 }

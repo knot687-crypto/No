@@ -51,6 +51,12 @@ public final class XeysClient implements ClientModInitializer {
 		});
 		ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> ConfigManager.save());
 
+		net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback.EVENT.register((type, renderer, helper, ctx) -> {
+			if (renderer instanceof net.minecraft.client.renderer.entity.player.AvatarRenderer<?> avatar) {
+				helper.register(new dev.xeys.visuals.cosmetic.CosmeticLayer(avatar));
+			}
+		});
+
 		WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
 			for (Object l : WorldEvents.AFTER_ENTITIES.snapshot()) {
 				((WorldEvents.AfterEntities) l).onAfterEntities(ctx);

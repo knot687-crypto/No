@@ -5,7 +5,7 @@
 	"name": "XEYS VISUALS Game Tests",
 	"environment": "client",
 	"entrypoints": {
-		"fabric-client-gametest": ["dev.xeys.visuals.test.XeysClientGameTest", "dev.xeys.visuals.test.XeysHudGameTest", "dev.xeys.visuals.test.XeysScreenGameTest", "dev.xeys.visuals.test.XeysWidgetGameTest", "dev.xeys.visuals.test.XeysWorldGameTest"]
+		"fabric-client-gametest": ["dev.xeys.visuals.test.XeysClientGameTest", "dev.xeys.visuals.test.XeysHudGameTest", "dev.xeys.visuals.test.XeysScreenGameTest", "dev.xeys.visuals.test.XeysWidgetGameTest", "dev.xeys.visuals.test.XeysWorldGameTest", "dev.xeys.visuals.test.XeysCosmeticsGameTest"]
 	},
 	"depends": {
 		"xeys": "*"

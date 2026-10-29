@@ -1,6 +1,30 @@
 package dev.xeys.visuals.modules;
 
 import dev.xeys.visuals.core.module.ModuleManager;
+import dev.xeys.visuals.modules.cosmetics.AuraModule;
+import dev.xeys.visuals.modules.cosmetics.CapeModule;
+import dev.xeys.visuals.modules.cosmetics.ChinaHatModule;
+import dev.xeys.visuals.modules.cosmetics.CompanionModule;
+import dev.xeys.visuals.modules.cosmetics.CosmeticsModule;
+import dev.xeys.visuals.modules.cosmetics.CrownModule;
+import dev.xeys.visuals.modules.cosmetics.EarsModule;
+import dev.xeys.visuals.modules.cosmetics.FootstepsModule;
+import dev.xeys.visuals.modules.cosmetics.GlowingEyesModule;
+import dev.xeys.visuals.modules.cosmetics.HaloModule;
+import dev.xeys.visuals.modules.cosmetics.HideArmorModule;
+import dev.xeys.visuals.modules.cosmetics.HornsModule;
+import dev.xeys.visuals.modules.cosmetics.JumpCirclesModule;
+import dev.xeys.visuals.modules.cosmetics.KillEffectsModule;
+import dev.xeys.visuals.modules.cosmetics.NametagsModule;
+import dev.xeys.visuals.modules.cosmetics.OrbitRingsModule;
+import dev.xeys.visuals.modules.cosmetics.PlayerScaleModule;
+import dev.xeys.visuals.modules.cosmetics.RainCloudModule;
+import dev.xeys.visuals.modules.cosmetics.ScarfModule;
+import dev.xeys.visuals.modules.cosmetics.TailModule;
+import dev.xeys.visuals.modules.cosmetics.TargetIndicatorModule;
+import dev.xeys.visuals.modules.cosmetics.TopHatModule;
+import dev.xeys.visuals.modules.cosmetics.TrailsModule;
+import dev.xeys.visuals.modules.cosmetics.WingsModule;
 import dev.xeys.visuals.modules.hud.ArmorHudModule;
 import dev.xeys.visuals.modules.hud.BiomeModule;
 import dev.xeys.visuals.modules.hud.ClockModule;
@@ -87,6 +111,7 @@ final class ModuleCatalog {
 		hudBatch1();
 		screenBatch1();
 		worldBatch1();
+		cosmeticsBatch1();
 	}
 
 	/** World batch 1: block highlighting, time, weather, sky and fog, grading, combat feedback and items. */
@@ -182,5 +207,32 @@ final class ModuleCatalog {
 		ModuleManager.register(new HeadingBarModule());
 		ModuleManager.register(new TargetHudModule());
 		ModuleManager.register(new HeldItemModule());
+	}
+
+	private static void cosmeticsBatch1() {
+		ModuleManager.register(new CosmeticsModule());
+		ModuleManager.register(new CapeModule());
+		ModuleManager.register(new WingsModule());
+		ModuleManager.register(new HaloModule());
+		ModuleManager.register(new CrownModule());
+		ModuleManager.register(new TopHatModule());
+		ModuleManager.register(new ChinaHatModule());
+		ModuleManager.register(new EarsModule());
+		ModuleManager.register(new HornsModule());
+		ModuleManager.register(new TailModule());
+		ModuleManager.register(new ScarfModule());
+		ModuleManager.register(new GlowingEyesModule());
+		ModuleManager.register(new AuraModule());
+		ModuleManager.register(new OrbitRingsModule());
+		ModuleManager.register(new CompanionModule());
+		ModuleManager.register(new RainCloudModule());
+		ModuleManager.register(new TrailsModule());
+		ModuleManager.register(new JumpCirclesModule());
+		ModuleManager.register(new FootstepsModule());
+		ModuleManager.register(new TargetIndicatorModule());
+		ModuleManager.register(new KillEffectsModule());
+		ModuleManager.register(new NametagsModule());
+		ModuleManager.register(new HideArmorModule());
+		ModuleManager.register(new PlayerScaleModule());
 	}
 }

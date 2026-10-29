@@ -212,6 +212,11 @@ public final class XeysPipelines {
 		.withShaderDefine("GLOW_BEAM")
 		.build());
 
+	public static final RenderPipeline WORLD_GLOW_RING = register(RenderPipeline.builder(WORLD_GLOW)
+		.withLocation(Xeys.id("pipeline/world_glow_ring"))
+		.withShaderDefine("GLOW_RING")
+		.build());
+
 	/** Static sky gradient and nebula, rendered once per resize into a half-resolution cache. */
 	public static final RenderPipeline MOON_NEBULA = register(RenderPipeline.builder(FULLSCREEN)
 		.withLocation(Xeys.id("pipeline/moon_nebula"))

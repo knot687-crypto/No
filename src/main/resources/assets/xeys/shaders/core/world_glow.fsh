@@ -10,7 +10,14 @@ in vec4 vertexColor;
 out vec4 fragColor;
 
 void main() {
-#ifdef GLOW_BEAM
+#if defined(GLOW_RING)
+    // A thin bright ring with a soft halo; texCoord is -1..1 across the quad, the ring sits at 0.8.
+    float r = length(texCoord);
+    float d = (r - 0.8) / 0.07;
+    float h = (r - 0.8) / 0.22;
+    float a = exp(-d * d) + exp(-h * h) * 0.35;
+    vec3 color = mix(vertexColor.rgb, vec3(1.0), exp(-d * d) * 0.35);
+#elif defined(GLOW_BEAM)
     // texCoord.x: -1..1 across the beam; texCoord.y: base (0) to top (1).
     float across = texCoord.x;
     float y = clamp(texCoord.y, 0.0, 1.0);

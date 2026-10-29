@@ -65,12 +65,27 @@ public final class HitTracker {
 				fire(p, kind);
 			}
 		}
-		// A hit that turns out to be the kill a moment later is reported again as a kill.
+		// A hit that turns out to be the kill a moment later (the death can arrive a little after the
+		// hurt flash on a busy server) is reported again as a kill.
 		LivingEntity c = confirmed;
-		if (c != null && !upgraded && c.isDeadOrDying() && Clock.time() - confirmedAt < 0.3) {
+		if (c != null && !upgraded && c.isDeadOrDying() && Clock.time() - confirmedAt < 1.5) {
 			upgraded = true;
 			fire(c, Kind.KILL);
 		}
+	}
+
+	/** The entity your last landed hit struck, while it lives and for {@code seconds} after the hit. */
+	public static @Nullable LivingEntity lastTarget(double seconds) {
+		LivingEntity c = confirmed;
+		if (c == null || c.isRemoved() || Clock.time() - confirmedAt > seconds) {
+			return null;
+		}
+		return c;
+	}
+
+	/** Seconds since your last hit landed. */
+	public static double sinceLastHit() {
+		return confirmed == null ? Double.MAX_VALUE : Clock.time() - confirmedAt;
 	}
 
 	private static void fire(LivingEntity target, Kind kind) {
