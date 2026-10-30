@@ -22,10 +22,10 @@ A black glass menu for Roblox experiences, built over the *Creation* artwork. Th
 
 1. **Upload the artwork.** Upload `assets/background.png` as an **Image**: Creator Dashboard → Development Items → Images, or Studio → View → Asset Manager → Import. Upload it unchanged (1024 × 558). `assets/background-frost.png` is optional. It's only used if you turn the Frost setting up.
 2. **Add the menu.** In `StarterPlayer › StarterPlayerScripts`, create a **LocalScript** named `Genesis` and paste in `src/client/Genesis.client.lua`.
-3. **Point it at your image.** At the top of the script, set the id:
+3. **Point it at your image.** At the top of the script, set the id. This repo already uses the uploaded artwork, `rbxassetid://88187297689824`, so this step is done unless you re-upload:
    ```lua
-   Artwork = "rbxassetid://YOUR_BACKGROUND_ID",
-   ArtworkFrost = "rbxassetid://YOUR_FROST_ID", -- optional
+   Artwork = "rbxassetid://88187297689824",
+   ArtworkFrost = "rbxassetid://0", -- optional: id of background-frost.png enables the Frost slider
    ```
    Use the *image* id. If you uploaded a Decal, drop it into an ImageLabel and copy the `Image` property, which is the image id.
 4. **Optional: save settings between visits.** In `ServerScriptService`, create a **Script** named `GenesisConfig` and paste in `src/server/GenesisConfig.server.lua`. To test saving in Studio, publish the place and turn on Game Settings → Security → **Enable Studio Access to API Services**. Without this script the menu still works, and settings last for the session.

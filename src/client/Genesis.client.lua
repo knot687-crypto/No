@@ -21,8 +21,8 @@ local CONFIG = {
 	Title = "Genesis",
 	Tagline = "Glass Interface",
 
-	-- Image id for the artwork. Leave rbxassetid://0 to run without it.
-	Artwork = "rbxassetid://0",
+	-- Image id for the artwork. Set to rbxassetid://0 to run without it.
+	Artwork = "rbxassetid://88187297689824",
 	-- Optional pre-frosted copy, only used when the Frost setting is above 0.
 	ArtworkFrost = "rbxassetid://0",
 	-- Pixel size of the uploaded artwork (both files share it).
@@ -2701,9 +2701,12 @@ do
 	slider(glass, "Glass opacity", "glass", 0, 100, 1, function(value)
 		return value .. "%"
 	end)
-	slider(glass, "Frost", "frost", 0, 100, 1, function(value)
-		return value .. "%"
-	end)
+	-- Frost needs the pre-frosted copy, so the control only appears once it is set.
+	if HAS_FROST then
+		slider(glass, "Frost", "frost", 0, 100, 1, function(value)
+			return value .. "%"
+		end)
+	end
 	slider(glass, "Artwork brightness", "artwork", 20, 100, 1, function(value)
 		return value .. "%"
 	end)
