@@ -2,14 +2,16 @@
 --[[
 	G E N E S I S  ·  Glass Interface
 
-	A frosted-glass menu for Roblox experiences, layered over custom artwork.
-	Every panel is real glass: it samples the artwork sitting behind it, frosts
-	it, tints it, and catches light along its rim.
+	A black glass menu for Roblox experiences, layered over custom artwork.
+	Every panel is real glass: it shows the exact slice of artwork sitting
+	behind it, crisp, tinted and catching light along its rim. Frost is an
+	optional setting.
 
 	Install
-	  1  Upload assets/background.png and assets/background-frost.png as images
-	     (Creator Dashboard → Development Items → Images, or Studio's Asset Manager).
-	  2  Paste both ids into CONFIG below.
+	  1  Upload assets/background.png as an image (Creator Dashboard → Development
+	     Items → Images, or Studio's Asset Manager). Optionally upload
+	     assets/background-frost.png too, for the Frost setting.
+	  2  Paste the id(s) into CONFIG below.
 	  3  Put this LocalScript in StarterPlayer › StarterPlayerScripts.
 	  4  Optional: put GenesisConfig.server.lua in ServerScriptService so every
 	     setting follows the player between visits.
@@ -19,8 +21,9 @@ local CONFIG = {
 	Title = "Genesis",
 	Tagline = "Glass Interface",
 
-	-- Image ids for the artwork. Leave rbxassetid://0 to run without it.
+	-- Image id for the artwork. Leave rbxassetid://0 to run without it.
 	Artwork = "rbxassetid://0",
+	-- Optional pre-frosted copy, only used when the Frost setting is above 0.
 	ArtworkFrost = "rbxassetid://0",
 	-- Pixel size of the uploaded artwork (both files share it).
 	ArtworkSize = Vector2.new(1024, 558),
@@ -129,8 +132,8 @@ local DEFAULTS = {
 	typeface = "Builder Sans",
 	corners = "Soft",
 	scale = 100,
-	glass = 36,
-	frost = 85,
+	glass = 40,
+	frost = 0,
 	artwork = 100,
 	edgeLight = true,
 
@@ -790,7 +793,7 @@ local function glassStack(parent, radius, zIndex)
 	local frost = artLayer(parent, if HAS_FROST then CONFIG.ArtworkFrost else "", {
 		Name = "Frost",
 		ImageTransparency = 1 - Settings.get("frost") / 100,
-		Visible = HAS_FROST,
+		Visible = HAS_FROST and Settings.get("frost") > 0,
 		ZIndex = zIndex,
 	})
 	corner(frost, radius)
@@ -822,14 +825,36 @@ local function glassStack(parent, radius, zIndex)
 	})
 end
 
+-- Darkens the top of a pane so a page title stays legible over the crisp
+-- halftone, then clears so the artwork below is untouched.
+local function headerShade(parent, radius, zIndex)
+	local shade = new("Frame", {
+		Name = "Shade",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = BLACK,
+		BackgroundTransparency = 0,
+		ZIndex = zIndex,
+		Parent = parent,
+	})
+	corner(shade, radius)
+	gradient(shade, {
+		Rotation = 90,
+		Transparency = numbers({ { 0, 0.3 }, { 0.16, 0.42 }, { 0.32, 1 }, { 1, 1 } }),
+	})
+end
+
 -- A pane of glass with a rim light and a specular line along its top edge.
-local function glassPanel(parent, name, position, size, radius, zIndex)
+-- Shaded panes also darken their top for a page title.
+local function glassPanel(parent, name, position, size, radius, zIndex, shaded)
 	local panel = new("Frame", { Name = name, Position = position, Size = size, ZIndex = zIndex, Parent = parent })
 	glassStack(panel, radius, 1)
+	if shaded then
+		headerShade(panel, radius, 4)
+	end
 
-	local content = new("Frame", { Name = "Content", Size = UDim2.fromScale(1, 1), ZIndex = 4, Parent = panel })
+	local content = new("Frame", { Name = "Content", Size = UDim2.fromScale(1, 1), ZIndex = 5, Parent = panel })
 
-	local rim = new("Frame", { Name = "Rim", Size = UDim2.fromScale(1, 1), ZIndex = 5, Parent = panel })
+	local rim = new("Frame", { Name = "Rim", Size = UDim2.fromScale(1, 1), ZIndex = 6, Parent = panel })
 	corner(rim, radius)
 	local rimStroke = stroke(rim, 0.8)
 	rimLight(rimStroke)
@@ -841,13 +866,13 @@ local function glassPanel(parent, name, position, size, radius, zIndex)
 		Size = UDim2.new(1, -36, 0, 1),
 		BackgroundColor3 = WHITE,
 		BackgroundTransparency = 0,
-		ZIndex = 5,
+		ZIndex = 6,
 		Parent = panel,
 	})
 	gradient(highlight, { Transparency = numbers({ { 0, 1 }, { 0.3, 0.8 }, { 0.7, 0.8 }, { 1, 1 } }) })
 	rimLines[highlight] = true
 
-	return { Frame = panel, Content = content, radius = radius }
+	return { Frame = panel, Content = content, radius = radius, shaded = shaded }
 end
 
 -- A strip of the same glass laid over scrolling content so it dissolves at
@@ -878,6 +903,9 @@ local function glassFade(panel, panelSize, edge, height)
 		artLayer(replica, CONFIG.Artwork, { ZIndex = 1 })
 	end
 	glassStack(replica, panel.radius, 2)
+	if panel.shaded then
+		headerShade(replica, panel.radius, 5)
+	end
 	return group
 end
 
@@ -1309,7 +1337,8 @@ local contentPanel = glassPanel(
 	UDim2.fromOffset(INSET, INSET * 2 + BAR),
 	UDim2.fromOffset(CONTENT.X, CONTENT.Y),
 	RADIUS.panel,
-	3
+	3,
+	true
 )
 -- The content pane rides through this group only while the window collapses.
 local collapseFader = new(
@@ -1362,7 +1391,7 @@ local function newPage(id, title, subtitle)
 			Size = UDim2.new(1, 0, 0, 18),
 			Text = subtitle,
 			TextSize = 13,
-			TextTransparency = TEXT.secondary,
+			TextTransparency = 0.3,
 			Parent = header,
 		})
 	end
@@ -1405,7 +1434,7 @@ local function cardFrame(parent, order)
 		Size = UDim2.fromScale(1, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = Color3.fromRGB(20, 20, 26),
-		BackgroundTransparency = 0.66,
+		BackgroundTransparency = 0.48,
 		LayoutOrder = order,
 		Parent = parent,
 	})
@@ -1415,28 +1444,24 @@ local function cardFrame(parent, order)
 	return card
 end
 
+-- A card whose title sits inside it, so small text never lies directly on
+-- the crisp artwork.
 local function section(column, title)
-	local holder = new("Frame", {
-		Name = title,
-		Size = UDim2.fromScale(1, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		LayoutOrder = nextOrder(),
-		Parent = column,
-	})
-	list(holder, Enum.FillDirection.Vertical, 10)
+	local card = cardFrame(column, nextOrder())
+	card.Name = title
+	padding(card, 0, 0, 4, 0)
+	list(card, Enum.FillDirection.Vertical, 0)
+	local header = new("Frame", { Name = "Header", Size = UDim2.new(1, 0, 0, 36), LayoutOrder = 0, Parent = card })
 	new("TextLabel", {
 		Name = "Title",
-		Size = UDim2.new(1, 0, 0, 14),
+		Position = UDim2.fromOffset(16, 16),
+		Size = UDim2.new(1, -32, 0, 14),
 		Text = string.upper(title),
 		TextSize = 11,
-		TextTransparency = 0.5,
+		TextTransparency = 0.48,
 		weight = Enum.FontWeight.Bold,
-		LayoutOrder = 1,
-		Parent = holder,
+		Parent = header,
 	})
-	local card = cardFrame(holder, 2)
-	padding(card, 4, 0, 4, 0)
-	list(card, Enum.FillDirection.Vertical, 0)
 	return { Frame = card, rows = 0 }
 end
 
@@ -3236,6 +3261,7 @@ end)
 Settings.listen("frost", function(value)
 	for layer in frostLayers do
 		layer.ImageTransparency = 1 - value / 100
+		layer.Visible = HAS_FROST and value > 0
 	end
 end)
 

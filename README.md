@@ -1,6 +1,6 @@
 # Genesis — Glass Interface for Roblox
 
-A black, frosted-glass menu for Roblox experiences, built over the *Creation* artwork. Every pane is real glass: it shows the exact slice of artwork sitting behind it, frosted, tinted and lit along its rim, so the image stays visible through the whole interface.
+A black glass menu for Roblox experiences, built over the *Creation* artwork. The artwork fills the window and shows through every pane crisp and sharp. The glass tints it, lights its edges and keeps text readable, without hiding the image.
 
 ![Genesis home page](docs/preview-home.png)
 
@@ -16,16 +16,16 @@ A black, frosted-glass menu for Roblox experiences, built over the *Creation* ar
 - **Visuals**: bloom, sun rays, depth of field, colour tone presets, saturation, contrast and time of day, all applied on the player's screen only.
 - **Settings**: the full config for the menu itself (see below), with cloud save.
 - **Polish**: drifting stars and a breathing glow at the touch point, scroll edges that dissolve into the glass, spring-eased toggles and sliders, toasts, a dock pill to reopen the menu, and a fade-and-scale open animation that keeps the window pixel-sharp at rest.
-- No third-party assets. Icons, shadows and glows are drawn from frames, so the only uploads are your two artwork images.
+- No third-party assets. Icons, shadows and glows are drawn from frames, so the only upload is your artwork, plus an optional frosted copy.
 
 ## Setup in Studio
 
-1. **Upload the artwork.** Upload `assets/background.png` and `assets/background-frost.png` as **Images**: Creator Dashboard → Development Items → Images, or Studio → View → Asset Manager → Import. Upload them unchanged (1024 × 558).
+1. **Upload the artwork.** Upload `assets/background.png` as an **Image**: Creator Dashboard → Development Items → Images, or Studio → View → Asset Manager → Import. Upload it unchanged (1024 × 558). `assets/background-frost.png` is optional. It's only used if you turn the Frost setting up.
 2. **Add the menu.** In `StarterPlayer › StarterPlayerScripts`, create a **LocalScript** named `Genesis` and paste in `src/client/Genesis.client.lua`.
-3. **Point it at your images.** At the top of the script, set the two ids:
+3. **Point it at your image.** At the top of the script, set the id:
    ```lua
    Artwork = "rbxassetid://YOUR_BACKGROUND_ID",
-   ArtworkFrost = "rbxassetid://YOUR_FROST_ID",
+   ArtworkFrost = "rbxassetid://YOUR_FROST_ID", -- optional
    ```
    Use the *image* id. If you uploaded a Decal, drop it into an ImageLabel and copy the `Image` property, which is the image id.
 4. **Optional: save settings between visits.** In `ServerScriptService`, create a **Script** named `GenesisConfig` and paste in `src/server/GenesisConfig.server.lua`. To test saving in Studio, publish the place and turn on Game Settings → Security → **Enable Studio Access to API Services**. Without this script the menu still works, and settings last for the session.
@@ -57,7 +57,7 @@ rojo build -o Genesis.rbxl   # or: rojo serve
 | | Corners | Sharp, Soft or Round radius for every pane and control |
 | | Interface scale | 80–125 %. The window always fits the screen and the top bar |
 | Glass | Glass opacity | Strength of the black tint |
-| | Frost | How frosted the artwork looks through the glass. 0 % is crystal clear |
+| | Frost | Off by default, so the artwork stays crisp. Raise it to frost the art behind the glass (needs the frost image) |
 | | Artwork brightness | Dims the artwork behind everything |
 | | Edge light | Rim light and specular line on every pane |
 | Behaviour | Menu key | Click, then press any key. Esc cancels |
@@ -92,13 +92,15 @@ Available controls: `toggle`, `slider`, `dropdown`, `segmented`, `swatches`, `ke
 
 ## How the glass works
 
-The window shows the artwork with `ScaleType.Crop`. Each glass pane holds its own copy of the pre-frosted artwork and, whenever the pane moves or resizes, sets `ImageRectOffset`/`ImageRectSize` to the exact rectangle of artwork behind it. The frost lines up with the image underneath while you drag, scroll, collapse or animate. A black tint, a diagonal sheen, a rim-lit `UIStroke` and a one-pixel specular line finish the pane.
+The window shows the artwork with `ScaleType.Crop`. Each pane on top is a black tint, a diagonal sheen, a rim-lit `UIStroke` and a one-pixel specular line, so the art shows through sharp. A soft shade behind the page title and darker card glass under small text keep everything legible over the halftone.
+
+When Frost is raised, each pane also shows a pre-frosted copy of the artwork. That copy is cropped with `ImageRectOffset`/`ImageRectSize` to the exact rectangle behind the pane, and recropped whenever the pane moves, so the frost lines up with the image while you drag, scroll or animate.
 
 Scroll edges dissolve because a strip of identical glass sits over each end of the content, inside a `CanvasGroup` faded with a `UIGradient`. The window and incoming pages pass through a `CanvasGroup` only while they animate, then return to normal frames, so text stays crisp at rest.
 
 ## Verification
 
-Both scripts were run headless against a simulated Roblox client, built on [Lune](https://github.com/lune-org/lune). That client checks every class, property, value type and enum against Roblox's API reflection database, and lays out and renders the interface for review. 25 interaction checks pass: slider drags, key capture, dropdown picks, corner styles, accent changes, window drag, close/dock/reopen, hold-to-zoom, crosshair, performance chip, reset and Motion Off. 17 server checks pass: shared loads, throttled newest-wins saves, payload validation, flushing on leave and shutdown, and graceful handling when the DataStore is unavailable. Both files lint clean with Selene and are formatted with StyLua.
+Both scripts were run headless against a simulated Roblox client, built on [Lune](https://github.com/lune-org/lune). That client checks every class, property, value type and enum against Roblox's API reflection database, and lays out and renders the interface for review. 28 interaction checks pass: slider drags, frost on and off, key capture, dropdown picks, corner styles, accent changes, window drag, close/dock/reopen, hold-to-zoom, crosshair, performance chip, reset and Motion Off. 17 server checks pass: shared loads, throttled newest-wins saves, payload validation, flushing on leave and shutdown, and graceful handling when the DataStore is unavailable. Both files lint clean with Selene and are formatted with StyLua.
 
 The previews above are renders of that simulated client. Inter stands in for Roblox's Builder Sans, and the world behind the window is a placeholder. The scripts have not yet been run inside Roblox Studio itself.
 
@@ -106,7 +108,7 @@ The previews above are renders of that simulated client. Inter stands in for Rob
 
 ```
 assets/background.png          artwork shown behind the glass (upload as an Image)
-assets/background-frost.png    pre-frosted copy used inside the panes (upload as an Image)
+assets/background-frost.png    optional pre-frosted copy for the Frost setting
 src/client/Genesis.client.lua  the menu (LocalScript → StarterPlayerScripts)
 src/server/GenesisConfig.server.lua  optional cloud save (Script → ServerScriptService)
 default.project.json           Rojo project
